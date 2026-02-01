@@ -1,0 +1,4445 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ruota SmartphoneMania</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, #ffffff20, #0b1220 55%, #020617 100%),
+        linear-gradient(135deg, #991b1b, #14532d);
+      color: #e5e7eb;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.6) 0, rgba(255,255,255,0) 55px),
+        radial-gradient(circle, rgba(255,255,255,0.4) 0, rgba(255,255,255,0) 45px);
+      background-size: 260px 260px, 180px 180px;
+      background-position: 0 0, 80px 120px;
+      opacity: 0.3;
+      mix-blend-mode: screen;
+      z-index: 0;
+    }
+
+    /* ===================== FX LAYER (PRO MODE) ===================== */
+    #fxLayer{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      overflow: hidden;
+    }
+
+    .confetti{
+      position:absolute;
+      top:-12px;
+      width:10px;
+      height:14px;
+      border-radius:2px;
+      opacity:.95;
+      transform: translate3d(0,0,0) rotate(0deg);
+      filter: drop-shadow(0 0 10px rgba(250,204,21,.35));
+      animation: confettiFall 1.8s linear forwards;
+    }
+    @keyframes confettiFall{
+      0%   { transform: translate3d(var(--xStart), -20px, 0) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      100% { transform: translate3d(var(--xEnd), 110vh, 0) rotate(720deg); opacity: .95; }
+    }
+
+    .fx-flash{
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at 50% 30%, rgba(250,204,21,.42), rgba(250,204,21,0) 60%),
+                  radial-gradient(circle at 50% 70%, rgba(56,189,248,.18), rgba(56,189,248,0) 55%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      animation: fxFlash 1.1s ease-out forwards;
+    }
+    @keyframes fxFlash{
+      0%   { opacity: 0; }
+      10%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* LOGIN SCREEN */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.95), #020617);
+      z-index: 9999;
+    }
+
+    .login-box {
+      width: 90%;
+      max-width: 320px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: rgba(15,23,42,0.96);
+      border: 1px solid rgba(148,163,184,0.8);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      font-size: 12px;
+    }
+
+    .login-box h2 {
+      font-size: 16px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .login-note {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    #loginForm {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    #loginForm label {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 11px;
+    }
+
+    #loginForm input {
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.7);
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    #loginForm button {
+      margin-top: 6px;
+      border: none;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: radial-gradient(circle at 20% 0, #22c55e,#15803d);
+      color:#fefce8;
+      box-shadow: 0 8px 18px rgba(22,163,74,0.6);
+    }
+
+    .login-small {
+      margin-top: 6px;
+      font-size: 10px;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    .app {
+      width: 100%;
+      height: 100vh;
+      max-width: 900px;
+      max-height: 100vh;
+      padding: 4px 6px 6px;
+      background:
+        radial-gradient(circle at top, rgba(248,250,252,0.15), rgba(15,23,42,.96));
+      box-shadow:
+        0 25px 60px rgba(0,0,0,.9),
+        0 0 0 1px rgba(148,163,184,.4);
+      border-radius: 12px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      z-index: 1;
+      overflow: hidden;
+      transition: box-shadow 0.25s ease, transform 0.25s ease;
+    }
+
+    .app.jackpot-locked {
+      box-shadow:
+        0 0 40px rgba(250,204,21,.9),
+        0 0 80px rgba(250,250,210,.9),
+        0 0 0 1px rgba(250,250,210,.9);
+      transform: scale(1.01);
+    }
+
+    /* PRO MODE: shake su jackpot */
+    .app.jackpot-shake{
+      animation: jackpotShake .75s cubic-bezier(.2,.9,.2,1) both;
+    }
+    @keyframes jackpotShake{
+      0%{ transform: translate3d(0,0,0) scale(1.01); }
+      12%{ transform: translate3d(-6px, 3px, 0) scale(1.012); }
+      24%{ transform: translate3d(7px, -4px, 0) scale(1.013); }
+      36%{ transform: translate3d(-8px, -2px, 0) scale(1.013); }
+      48%{ transform: translate3d(7px, 6px, 0) scale(1.012); }
+      60%{ transform: translate3d(-5px, 4px, 0) scale(1.012); }
+      72%{ transform: translate3d(4px, -5px, 0) scale(1.011); }
+      100%{ transform: translate3d(0,0,0) scale(1.01); }
+    }
+
+    .app::before,
+    .app::after {
+      content: "";
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: 8px dashed rgba(22,163,74,0.9);
+      filter: drop-shadow(0 0 12px rgba(34,197,94,0.8));
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .app::before { top: -80px; left: -50px; }
+    .app::after { bottom: -80px; right: -40px; }
+
+    header {
+      text-align: center;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 2;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top left, rgba(248,250,252,.25), transparent),
+                  linear-gradient(135deg, #b91c1c, #f97316);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 3px;
+    }
+    .badge span { font-weight: 600; }
+    h1 { font-size: 18px; margin-bottom: 1px; }
+    .subtitle { font-size: 10px; }
+
+    /* CTA ORO (lampeggiante) */
+    .cta-missile{
+      margin-top: 2px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #fbbf24;
+      text-shadow:
+        0 0 6px rgba(251,191,36,.9),
+        0 0 18px rgba(245,158,11,.75),
+        0 2px 0 rgba(120,53,15,.9);
+      animation: goldPulse 1s ease-in-out infinite alternate;
+    }
+    @keyframes goldPulse{
+      0%{ filter: brightness(1); transform: translateY(0); opacity:.92; }
+      100%{ filter: brightness(1.35); transform: translateY(-1px); opacity:1; }
+    }
+
+    .content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 180px 1fr 180px;
+      gap: 4px;
+      position: relative;
+      z-index: 2;
+    }
+
+    @media (max-width: 720px) {
+      .content { grid-template-columns: 1fr; }
+    }
+
+    .left, .right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .left { justify-content: center; }
+
+    .wheel-wrapper {
+      position: relative;
+      width: min(280px, 62vw);
+      height: min(280px, 62vw);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-height: 700px) {
+      .wheel-wrapper {
+        width: min(250px, 58vw);
+        height: min(250px, 58vw);
+      }
+      h1 { font-size: 17px; }
+      .subtitle { font-size: 9px; }
+    }
+
+    .wheel-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      border: 10px solid #020617;
+      box-shadow:
+        0 0 0 2px rgba(248,250,252,.2),
+        0 0 28px rgba(56,189,248,.9);
+      z-index: 1;
+    }
+
+    .text-ring { position: absolute; inset: -6px; border-radius: 50%; pointer-events: none; z-index: 6; }
+
+    .led-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 3;
+      animation: casinoRotate 2.5s linear infinite;
+    }
+
+    @keyframes casinoRotate {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .led-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #fef9c3, #b45309);
+      box-shadow:
+        0 0 4px rgba(250,204,21,.9),
+        0 0 10px rgba(250,204,21,.9),
+        0 0 16px rgba(248,250,252,.8);
+      opacity: 0.5;
+      transform-origin: 0 0;
+      animation: ledPulse 0.9s ease-in-out infinite alternate;
+    }
+    @keyframes ledPulse {
+      0% { opacity: .2; transform: scale(.85); }
+      100% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .light-sweep-outer {
+      position: absolute;
+      inset: -6px;
+      border-radius: 999px;
+      background: conic-gradient(
+        from 0deg,
+        rgba(250,250,210,0) 0deg,
+        rgba(250,250,210,0) 300deg,
+        rgba(250,250,210,0.95) 320deg,
+        rgba(250,250,210,0.4) 340deg,
+        rgba(250,250,210,0) 360deg
+      );
+      mix-blend-mode: screen;
+      opacity: 0.8;
+      pointer-events: none;
+      animation: sweepOuter 2.6s linear infinite;
+      z-index: 2;
+    }
+    @keyframes sweepOuter {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .wheel {
+      position: relative;
+      width: 88%;
+      height: 88%;
+      border-radius: 999px;
+      background: conic-gradient(
+          from -90deg,
+          #f97373 0deg 45deg,
+          #facc15 45deg 90deg,
+          #4ade80 90deg 135deg,
+          #38bdf8 135deg 180deg,
+          #e879f9 180deg 225deg,
+          #9ca3af 225deg 270deg,
+          #22c55e 270deg 315deg,
+          #0f172a 315deg 360deg
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow:
+        0 16px 32px rgba(0,0,0,.9),
+        inset 0 0 18px rgba(15,23,42,.95);
+      transition: transform 4.8s cubic-bezier(.11,.9,.25,1);
+      z-index: 5;
+    }
+
+    /* PRO MODE: glow pulse sulla ruota quando jackpot */
+    .wheel.jackpot-glow{
+      animation: wheelGlow .75s ease-in-out 1;
+    }
+    @keyframes wheelGlow{
+      0%{ box-shadow: 0 16px 32px rgba(0,0,0,.9), inset 0 0 18px rgba(15,23,42,.95); }
+      35%{
+        box-shadow:
+          0 0 0 2px rgba(250,204,21,.75),
+          0 0 40px rgba(250,204,21,.75),
+          0 0 70px rgba(56,189,248,.55);
+      }
+      100%{ box-shadow: 0 16px 32px rgba(0,0,0,.9), inset 0 0 18px rgba(15,23,42,.95); }
+    }
+
+    .garland-ring {
+      position: absolute;
+      inset: -16px;
+      border-radius: 999px;
+      border: 12px solid transparent;
+      background: conic-gradient(
+        #166534, #065f46, #16a34a, #b91c1c,
+        #166534, #16a34a, #b91c1c, #16a34a,
+        #166534, #b91c1c, #166534, #16a34a,
+        #b91c1c, #16a34a, #166534, #b91c1c,
+        #166534, #16a34a, #b91c1c, #16a34a,
+        #166534, #b91c1c, #16a34a, #166534,
+        #b91c1c, #16a34a, #166534, #b91c1c,
+        #16a34a, #166534, #b91c1c, #16a34a,
+        #166534, #b91c1c, #16a34a, #166534
+      );
+      opacity: 0.9;
+      box-shadow: 0 0 18px rgba(22,163,74,0.7), 0 0 24px rgba(220,38,38,0.6);
+      z-index: 0;
+    }
+
+    .wheel-snow {
+      position: absolute;
+      inset: 4%;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 4;
+
+      /* Falling gold coins (small tokens) */
+      background-image:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.95) 0 1.2px, rgba(255,255,255,0) 2.6px),
+        radial-gradient(circle, rgba(250,204,21,.95) 0 3.1px, rgba(250,204,21,0) 4.2px),
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,.85) 0 1px, rgba(255,255,255,0) 2.2px),
+
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.9) 0 1.1px, rgba(255,255,255,0) 2.4px),
+        radial-gradient(circle, rgba(245,158,11,.92) 0 2.7px, rgba(245,158,11,0) 3.8px),
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,.8) 0 0.9px, rgba(255,255,255,0) 2px),
+
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.9) 0 1.0px, rgba(255,255,255,0) 2.3px),
+        radial-gradient(circle, rgba(234,179,8,.9) 0 2.3px, rgba(234,179,8,0) 3.4px),
+        radial-gradient(circle at 35% 35%, rgba(255,255,255,.75) 0 0.85px, rgba(255,255,255,0) 1.9px);
+
+      /* Each triplet above = one "coin" sprite (highlight + gold body + highlight) */
+      background-size:
+        70px 70px, 70px 70px, 70px 70px,
+        92px 92px, 92px 92px, 92px 92px,
+        120px 120px, 120px 120px, 120px 120px;
+
+      background-position:
+        0 -90px, 0 -90px, 0 -90px,
+        40px -130px, 40px -130px, 40px -130px,
+        -30px -110px, -30px -110px, -30px -110px;
+
+      animation: snowFall 6.2s linear infinite;
+      mix-blend-mode: screen;
+      opacity: 0.9;
+      filter: drop-shadow(0 0 6px rgba(250,204,21,.55));
+    }
+    @keyframes snowFall {
+      0% {
+        background-position:
+          0 -90px, 0 -90px, 0 -90px,
+          40px -130px, 40px -130px, 40px -130px,
+          -30px -110px, -30px -110px, -30px -110px;
+      }
+      100% {
+        background-position:
+          0 160px, 0 160px, 0 160px,
+          40px 210px, 40px 210px, 40px 210px,
+          -30px 190px, -30px 190px, -30px 190px;
+      }
+    }
+
+100% { background-position: 0 120px, 40px 140px, -30px 110px; }
+    }
+
+    .wheel-center {
+      position: absolute;
+      inset: 36%;
+      border-radius: 999px;
+      background: #020617;
+      box-shadow:
+        0 0 0 3px rgba(248,250,252,.35),
+        0 0 20px rgba(56,189,248,.9);
+      z-index: 6;
+      overflow: hidden;
+    }
+
+    .wheel-logo {
+      position: absolute;
+      width: 38%;
+      height: 38%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #020617;
+      z-index: 7;
+    }
+    .wheel-logo img { width: 100%; height: 100%; object-fit: contain; }
+
+    .pointer {
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-bottom: 22px solid #facc15;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,.8));
+      z-index: 10;
+    }
+
+    .pointer-base {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 14px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #fef9c3,#b45309);
+      box-shadow:
+        0 0 0 2px rgba(248,250,252,.6),
+        0 0 10px rgba(250,204,21,.7);
+      z-index: 9;
+    }
+
+    .missile-left{ left:-20%; bottom:-14px; }
+      .missile-right{ right:-20%; top:-14px; }
+    }
+
+    .controls {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+    }
+    .btn-primary {
+      background: radial-gradient(circle at 20% 0, #f97316,#dc2626);
+      color:#fefce8;
+      box-shadow:
+        0 10px 20px rgba(220,38,38,.6),
+        0 0 0 1px rgba(248,250,252,.2);
+    }
+    .btn-primary:active {
+      transform: translateY(1px) scale(.98);
+      box-shadow:
+        0 6px 12px rgba(220,38,38,.5),
+        0 0 0 1px rgba(248,250,252,.2);
+    }
+    .btn-secondary {
+      background: rgba(15,23,42,.85);
+      color:#e5e7eb;
+      border:1px solid rgba(148,163,184,.7);
+      font-size:11px;
+      padding-inline:12px;
+    }
+    .btn-small { font-size: 11px; padding: 5px 12px; }
+
+    .music-toggle { font-size: 11px; cursor: pointer; color: #bbf7d0; }
+    .info-row { display:flex; gap:6px; justify-content:center; font-size:11px; color:#9ca3af; flex-wrap: wrap; }
+    .chip {
+      padding:3px 8px;
+      border-radius:999px;
+      background:rgba(15,23,42,.8);
+      border:1px solid rgba(148,163,184,.5);
+    }
+
+    .legend, .nick, .leaderboard {
+      width:100%;
+      border-radius:12px;
+      padding:7px 8px;
+      background:rgba(15,23,42,.9);
+      border:1px solid rgba(55,65,81,.85);
+      font-size:11px;
+      margin-bottom:5px;
+      position: relative;
+      z-index: 2;
+    }
+    .legend-title, .nick-title, .leaderboard-title {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-weight:600;
+      margin-bottom:3px;
+    }
+    .legend-list { margin-left:14px; color:#d1d5db; }
+
+    .legend-combined { padding:6px 7px; }
+    .legend-cols { display:flex; gap:6px; }
+    .legend-col { flex:1; min-width:0; }
+
+    .result {
+      width:100%;
+      border-radius:10px;
+      padding:4px 6px;
+      background:rgba(15,23,42,0.95);
+      border:1px solid rgba(55,65,81,.85);
+      font-size:11px;
+      margin-bottom:4px;
+    }
+
+    .result-title {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-weight:600;
+      margin-bottom:3px;
+    }
+
+    .result-main { font-size:13px; font-weight:700; margin-bottom:3px; }
+    .result-main.jackpot{
+      color:#facc15;
+      text-shadow:0 0 6px rgba(250,204,21,.9),0 0 18px rgba(250,204,21,.9);
+      animation: jackpotTextBlink 0.4s ease-in-out infinite alternate;
+    }
+    @keyframes jackpotTextBlink {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.05); }
+    }
+    .result-main.win{color:#4ade80;}
+    .result-main.lose{color:#f97373;}
+    .result-sub span{font-weight:600;}
+
+    .stats-inline {
+      width:100%;
+      border-radius:10px;
+      padding:4px 6px;
+      background:rgba(15,23,42,0.95);
+      border:1px solid rgba(55,65,81,.85);
+      font-size:11px;
+      margin-bottom:0;
+    }
+    .stats-title {
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-weight:600;
+      margin-bottom:2px;
+    }
+    .stats-row{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:1px;
+    }
+
+    .footer-note {
+      font-size:9px;
+      color:#9ca3af;
+      text-align:center;
+      margin-top: 2px;
+    }
+
+    .hidden{display:none;}
+    .xmas-msg {
+      margin-top: 4px;
+      font-size: 11px;
+      text-align: center;
+      color: #facc15;
+      text-shadow: 0 0 6px rgba(250,204,21,0.7);
+      font-weight: 600;
+    }
+
+    .prize-overlay {
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      pointer-events:none;
+      z-index:30;
+      padding-top: 40px;
+      animation:prizeFade 2.6s ease-out forwards;
+    }
+    @keyframes prizeFade {
+      0%{opacity:0;}10%{opacity:1;}80%{opacity:1;}100%{opacity:0;}
+    }
+    .prize-overlay-fixed {
+      animation: none;
+    }
+    .prize-banner{
+      padding:16px 24px;
+      border-radius:20px;
+      background:radial-gradient(circle at 20% 0,#f9fafb,#e5e7eb);
+      box-shadow:
+        0 0 0 3px rgba(248,250,252,.9),
+        0 24px 60px rgba(0,0,0,.9);
+      text-align:center;
+      border:2px solid rgba(148,163,184,.9);
+      max-width:80%;
+    }
+    .prize-title{
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#111827;
+      margin-bottom:4px;
+    }
+    .prize-amount{
+      font-size:24px;
+      font-weight:900;
+      color:#16a34a;
+      text-shadow:0 0 6px rgba(34,197,94,.6);
+    }
+    .prize-sub{
+      font-size:12px;
+      margin-top:4px;
+      color:#374151;
+    }
+
+    .prize-banner.jackpot{
+      background:radial-gradient(circle at 20% 0,#fef9c3,#b45309);
+      border-color:#fef08a;
+    }
+    .prize-title.jackpot{
+      font-size:26px;
+      color:#7c2d12;
+      letter-spacing:.25em;
+      animation:jackpotBlink .4s ease-in-out infinite alternate;
+    }
+    .prize-amount.jackpot{
+      font-size:34px;
+      color:#b91c1c;
+      text-shadow:0 0 6px rgba(248,113,113,.9),0 0 18px rgba(239,68,68,.9);
+      animation:jackpotBlink .4s ease-in-out infinite alternate;
+    }
+    @keyframes jackpotBlink{
+      0%{transform:scale(1);opacity:.85;}
+      100%{transform:scale(1.2);opacity:1;}
+    }
+
+    .nick { margin-bottom:4px; }
+    .nick-input-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 2px;
+      margin-bottom: 3px;
+    }
+    .nick-input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.7);
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+      padding: 4px 10px;
+      font-size: 11px;
+      outline: none;
+    }
+    .nick-input::placeholder { color: #6b7280; }
+    .nick-current { font-size: 10px; color: #9ca3af; }
+
+    .leaderboard-list {
+      margin-left: 16px;
+      margin-top: 3px;
+      color: #d1d5db;
+      max-height: 120px;
+      overflow: hidden;
+    }
+    .leaderboard-list li { margin-bottom: 2px; }
+
+    .multi-input {
+      width: 52px;
+      margin-left: 4px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.7);
+      background: rgba(15,23,42,.95);
+      color: #e5e7eb;
+      padding: 2px 6px;
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .multi-status {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.95);
+      border: 1px solid rgba(250,204,21,.8);
+      font-size: 11px;
+      color: #facc15;
+      text-shadow: 0 0 4px rgba(250,204,21,.7);
+      box-shadow: 0 8px 20px rgba(0,0,0,.6);
+      z-index: 5;
+    }
+  
+    /* ===================== JACKPOT BOTTOM BANNER ===================== */
+    .jackpot-bottom{
+      position: fixed;
+      bottom: -140px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 16px 34px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top,#fde68a,#b45309);
+      color:#7c2d12;
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:.22em;
+      text-transform: uppercase;
+      box-shadow:
+        0 0 30px rgba(250,204,21,.95),
+        0 0 90px rgba(250,204,21,.55);
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .jackpot-bottom.show{
+      animation: jackpotRise 1.2s ease-out forwards, jackpotGlow 0.35s ease-in-out infinite alternate;
+    }
+    @keyframes jackpotRise{
+      0%{ bottom:-140px; opacity:0; }
+      35%{ opacity:1; }
+      100%{ bottom:56px; opacity:1; }
+    }
+    @keyframes jackpotGlow{
+      from{ filter: brightness(1); transform: translateX(-50%) scale(1); }
+      to  { filter: brightness(1.25); transform: translateX(-50%) scale(1.03); }
+    }
+
+    /* ===================== FIREWORKS (BOTTOM) ===================== */
+    #fireworkLayer{
+      position: fixed;
+      inset: 0;
+      pointer-events:none;
+      z-index: 9997;
+      overflow:hidden;
+    }
+    .fw-rocket{
+      position:absolute;
+      bottom:-30px;
+      width:8px;
+      height:18px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, rgba(248,250,252,1), rgba(56,189,248,.9), rgba(167,139,250,.8));
+      box-shadow: 0 0 10px rgba(56,189,248,.9), 0 0 18px rgba(167,139,250,.75);
+      animation: fwLaunch 0.9s ease-out forwards;
+      opacity: .95;
+    }
+    @keyframes fwLaunch{
+      from{ transform: translateY(0) scale(1); opacity:.95; }
+      to  { transform: translateY(var(--yEnd)) scale(1.15); opacity:0; }
+    }
+    .fw-spark{
+      position:absolute;
+      width:6px;
+      height:6px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, rgba(254,252,232,1), rgba(250,204,21,.95), rgba(239,68,68,.75));
+      box-shadow: 0 0 10px rgba(250,204,21,.9), 0 0 18px rgba(239,68,68,.7);
+      animation: fwBurst 1.15s ease-out forwards;
+      opacity: .95;
+    }
+    @keyframes fwBurst{
+      0%{ transform: translate3d(0,0,0) scale(1); opacity: 1; }
+      100%{ transform: translate3d(var(--dx), var(--dy), 0) scale(0.25); opacity: 0; }
+    }
+
+    /* ===================== JACKPOT UI LOCK ===================== */
+    .btn.locked{
+      opacity: .55;
+      pointer-events: none;
+      filter: grayscale(.2);
+    }
+
+  
+    
+    /* ===================== LOCK TOTALE DOPO JACKPOT (TRANNERNE AZZERA) ===================== */
+    .app.lock-all #spinBtn,
+    .app.lock-all #saveNickBtn,
+    .app.lock-all #musicToggle,
+    .app.lock-all #spinCostSelector,
+    .app.lock-all #multiSpinsInput,
+    .app.lock-all .master-switch,
+    .app.lock-all .master-switch *{
+      pointer-events: none !important;
+      opacity: .55;
+      filter: grayscale(.15);
+    }
+    .app.lock-all #resetBtn{
+      pointer-events: auto !important;
+      opacity: 1 !important;
+      filter: none !important;
+    }
+/* ===================== UNIVERSE JACKPOT VIDEO (BOTTOM) ===================== */
+    .jackpot-universe{
+      position: fixed;
+      bottom: -340px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(520px, 96vw);
+      z-index: 10001;
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity, bottom;
+    }
+    .jackpot-universe.show{
+      animation: universeRise 0.85s cubic-bezier(.12,.9,.18,1) forwards;
+    }
+    .jackpot-universe video{
+      width: 100%;
+      display:block;
+      border-radius: 20px;
+      box-shadow:
+        0 0 40px rgba(250,204,21,.9),
+        0 0 110px rgba(56,189,248,.55);
+      border: 1px solid rgba(250,204,21,.45);
+      background: rgba(2,6,23,.65);
+    }
+    @keyframes universeRise{
+      0%{ bottom:-340px; opacity:0; }
+      100%{ bottom:18px; opacity:1; }
+    }
+
+  
+    /* ===================== LAYOUT: LEFT/RIGHT CONTROL COLUMNS ===================== */
+    .left-controls, .right-controls{
+      width:100%;
+      border-radius:12px;
+      padding:8px 8px;
+      background:rgba(15,23,42,.85);
+      border:1px solid rgba(148,163,184,.55);
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      align-self: start;
+    }
+    .left-controls .btn,
+    .right-controls .chip{
+      width:100%;
+      justify-content:center;
+    }
+    .right-controls .chip{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:center;
+      text-align:center;
+      font-size:11px;
+      padding:8px 10px;
+    }
+    .right-controls .chip select,
+    .right-controls .chip input{
+      width:100%;
+      max-width:120px;
+    }
+
+    /* ===================== SIDE GIFTS (TIKTOK UNIVERSE) ===================== */
+    .side-gifts{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index: 4;
+    }
+    .gift-left, .gift-right{
+      position:absolute;
+      width:140px;
+      height:140px;
+      opacity:1;
+      filter:
+        drop-shadow(0 0 18px rgba(250,204,21,.95))
+        drop-shadow(0 0 26px rgba(56,189,248,.75))
+        drop-shadow(0 0 34px rgba(167,139,250,.75));
+      animation: giftPulse 1.15s ease-in-out infinite alternate;
+    }
+    .gift-left{ left: 6px; top: 46%; transform: translateY(-50%) rotate(-6deg); --rot:-6deg; }
+    .gift-right{ right: 6px; top: 46%; transform: translateY(-50%) rotate(6deg); --rot:6deg; }
+    .gift-left img, .gift-right img{ width:100%; height:100%; object-fit:contain; display:block; }
+
+    @keyframes giftPulse{
+      0%{ transform: translateY(-50%) scale(1) rotate(var(--rot)); filter: brightness(1); }
+      100%{ transform: translateY(-50%) scale(1.08) rotate(var(--rot)); filter: brightness(1.25); }
+    }
+
+    .gift-spark{
+      position:absolute;
+      inset:-10px;
+      border-radius: 22px;
+      background: conic-gradient(from 0deg,
+        rgba(250,204,21,0) 0deg,
+        rgba(250,204,21,.9) 45deg,
+        rgba(56,189,248,0) 90deg,
+        rgba(167,139,250,.9) 135deg,
+        rgba(250,204,21,0) 180deg,
+        rgba(56,189,248,.9) 225deg,
+        rgba(250,204,21,0) 270deg,
+        rgba(167,139,250,.9) 315deg,
+        rgba(250,204,21,0) 360deg
+      );
+      opacity:.55;
+      mix-blend-mode: screen;
+      filter: blur(0.5px);
+      animation: sparkSpin 2.2s linear infinite;
+    }
+    @keyframes sparkSpin{
+      from{ transform: rotate(0deg); }
+      to{ transform: rotate(360deg); }
+    }
+
+    /* ===================== LEADERBOARD DROPDOWN ===================== */
+    .lb-top3{
+      margin-left:16px;
+      margin-top:3px;
+      color:#d1d5db;
+    }
+    .lb-top3 li{ margin-bottom: 2px; }
+    .lb-toggle{
+      margin-top: 8px;
+      width:100%;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.7);
+      background: rgba(15,23,42,.9);
+      color:#e5e7eb;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor:pointer;
+    }
+    .lb-all{
+      margin-top: 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(55,65,81,.85);
+      background: rgba(15,23,42,.85);
+      padding: 8px 10px;
+      max-height: 210px;
+      overflow:auto;
+    }
+    .lb-all ol{
+      margin-left: 16px;
+      color:#d1d5db;
+    }
+
+    @media (max-width: 720px){
+      .content{ grid-template-columns: 1fr; }
+      .left-controls, .right-controls{ order: 2; }
+      .left{ order: 1; }
+      .right{ order: 3; }
+      .gift-left, .gift-right{ width: 120px; height:120px; top: 54%; }
+    }
+  
+    /* ===================== UNIVERSE WINGS (AL POSTO DEI MISSILI) ===================== */
+    .universe-wing{
+      position:absolute;
+      top: 18%;
+      width: 132px;
+      height: 132px;
+      transform: translateY(-50%);
+      pointer-events:none;
+      z-index: 8;
+      filter:
+        drop-shadow(0 0 18px rgba(250,204,21,.95))
+        drop-shadow(0 0 26px rgba(56,189,248,.75))
+        drop-shadow(0 0 34px rgba(167,139,250,.75));
+      animation: wingPulse 1.15s ease-in-out infinite alternate;
+    }
+    .universe-wing.left{ left:-20%; }
+    .universe-wing.right{ right:-20%; }
+    .universe-wing img{ width:100%; height:100%; object-fit:contain; display:block; }
+
+    .wing-spark{
+      position:absolute;
+      inset:-10px;
+      border-radius: 22px;
+      background: conic-gradient(from 0deg,
+        rgba(250,204,21,0) 0deg,
+        rgba(250,204,21,.95) 45deg,
+        rgba(56,189,248,0) 90deg,
+        rgba(167,139,250,.95) 135deg,
+        rgba(250,204,21,0) 180deg,
+        rgba(56,189,248,.95) 225deg,
+        rgba(250,204,21,0) 270deg,
+        rgba(167,139,250,.95) 315deg,
+        rgba(250,204,21,0) 360deg
+      );
+      opacity:.55;
+      mix-blend-mode: screen;
+      filter: blur(0.5px);
+      animation: wingSparkSpin 2.2s linear infinite;
+    }
+    @keyframes wingSparkSpin{
+      from{ transform: rotate(0deg); }
+      to{ transform: rotate(360deg); }
+    }
+    @keyframes wingPulse{
+      0%{ transform: translateY(-50%) scale(1); filter: brightness(1); }
+      100%{ transform: translateY(-50%) scale(1.08); filter: brightness(1.25); }
+    }
+
+    /* ===================== COMPACT FIT (tutto visibile in browser) ===================== */
+    .app{ max-width: 860px; padding: 4px 6px 6px; }
+    header{ margin-bottom: 3px; }
+    h1{ font-size: 16px; }
+    .subtitle{ font-size: 9px; }
+    .cta-missile{ font-size: 11px; margin-top: 1px; }
+    .wheel-wrapper{ width: min(260px, 58vw); height: min(260px, 58vw); }
+    @media (max-height: 700px){
+      .wheel-wrapper{ width: min(235px, 54vw); height: min(235px, 54vw); }
+    }
+
+    .legend, .nick, .leaderboard{ padding: 6px 7px; margin-bottom: 4px; font-size: 10.5px; }
+    .result, .stats-inline{ padding: 4px 6px; margin-bottom: 3px; font-size: 10.5px; }
+    .result-main{ font-size: 12px; margin-bottom: 2px; }
+    .footer-note{ font-size: 8.5px; }
+    .lb-all{ max-height: 170px; }
+
+    @media (max-width: 720px){
+      .universe-wing{ width: 112px; height:112px; }
+      .universe-wing.left{ left:-20%; }
+      .universe-wing.right{ right:-20%; }
+      .wheel-wrapper{ width: min(250px, 74vw); height: min(250px, 74vw); }
+    }
+  
+    /* ===================== COMPACT EXTRA FIELDS ===================== */
+    .multi-input{
+      padding: 6px 8px;
+      font-size: 11px;
+      border-radius: 10px;
+    }
+    #spinCostSelector, #multiSpinsInput{
+      width: 100% !important;
+      max-width: 120px !important;
+    }
+    .info-row{
+      gap: 6px !important;
+      margin-bottom: 3px !important;
+    }
+    .chip{
+      padding: 6px 7px !important;
+      font-size: 10.5px !important;
+    }
+    .wheel-wrapper{ width: min(240px, 56vw) !important; height: min(240px, 56vw) !important; }
+    .legend, .nick, .leaderboard{ margin-bottom: 3px !important; }
+    .lb-all{ max-height: 150px !important; }
+    @media (max-height: 700px){
+      .wheel-wrapper{ width: min(225px, 52vw) !important; height: min(225px, 52vw) !important; }
+      .chip{ font-size: 10px !important; }
+      #spinCostSelector, #multiSpinsInput{ max-width: 110px !important; }
+    }
+  
+    /* ===================== SIMPLE PAGE SCROLL ===================== */
+    html, body{
+      overflow-y: auto;
+      height: auto;
+    }
+  
+    /* ===================== HIDE INTERFERING UNIVERSE-WING ===================== */
+    .universe-wing{ display:none !important; }
+  
+    /* ===================== UNIVERSE WING HIDDEN FINAL ===================== */
+    .universe-wing{
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+  
+/* ===================== EXTRA SPARKLE + BRIGHTER ROTATION ===================== */
+.wheel-wrapper{ position: relative; }
+
+/* Bright rotating sparkle ring "sotto" (behind the wheel) */
+.wheel-spark-ring{
+  position:absolute;
+  inset:-18px;
+  border-radius:999px;
+  z-index: 1;
+  pointer-events:none;
+  opacity: .95;
+  mix-blend-mode: screen;
+  background:
+    conic-gradient(from 0deg,
+      rgba(255,255,255,0) 0deg,
+      rgba(250,204,21,.95) 25deg,
+      rgba(56,189,248,0) 70deg,
+      rgba(167,139,250,.85) 110deg,
+      rgba(255,255,255,0) 160deg,
+      rgba(56,189,248,.9) 210deg,
+      rgba(255,255,255,0) 260deg,
+      rgba(250,204,21,.9) 300deg,
+      rgba(255,255,255,0) 360deg
+    );
+  filter: blur(0.6px) brightness(1.35);
+  animation: sparkRingSpin 1.8s linear infinite;
+}
+
+/* Keep wheel itself above ring */
+.wheel, canvas, .wheel-center, .wheel-pointer, .light-sweep, .light-sweep-outer{
+  position: relative;
+  z-index: 3;
+}
+
+@keyframes sparkRingSpin{
+  from{ transform: rotate(0deg); }
+  to{ transform: rotate(360deg); }
+}
+
+/* Boost outer LED dots (if present) */
+.led-ring, .led-dots, .led-circle{
+  filter: brightness(1.35) drop-shadow(0 0 12px rgba(250,204,21,.85)) drop-shadow(0 0 18px rgba(56,189,248,.55));
+}
+
+/* If individual led dot elements exist, make them punchier */
+.led-dot{
+  opacity: .95;
+  filter: brightness(1.4);
+}
+
+
+/* ===== SFONDO DUBAI FIX (NON COPRE NULLA) ===== */
+.bg-dubai{
+  position: fixed;
+  inset: 0;
+  background-image: url("dubai_bg.jpg.png"), radial-gradient(circle at top, rgba(255,255,255,0.10), rgba(11,18,32,0.85) 55%, rgba(2,6,23,1) 100%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -9999;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.bg-dubai-dark{
+  position: fixed;
+  inset: 0;
+  z-index: -9998;
+  background: rgba(0,0,0,0.35);
+  pointer-events: none;
+}
+
+body{
+  position: relative;
+  z-index: 1;
+}
+
+
+    /* ===== RICONOSCENZE (BOX ORO) ===== */
+    .recon-box{
+      margin-top: 10px;
+      width: 100%;
+      max-width: 330px;
+      border-radius: 14px;
+      border: 1px solid rgba(250,204,21,.55);
+      background: linear-gradient(180deg, rgba(20,8,0,.55), rgba(2,6,23,.35));
+      box-shadow: 0 0 18px rgba(250,204,21,.22);
+      padding: 10px 10px 9px;
+      text-align: left;
+    }
+    .recon-title{
+      font-weight: 900;
+      color: #fbbf24;
+      letter-spacing: .6px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      margin-bottom: 4px;
+      text-shadow: 0 0 10px rgba(250,204,21,.25);
+    }
+    .recon-sub{
+      font-size: 11px;
+      color: rgba(253,230,138,.9);
+      margin-bottom: 8px;
+      line-height: 1.15;
+    }
+    .recon-row{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      padding: 6px 8px;
+      border-radius: 12px;
+      background: rgba(250,204,21,.10);
+      border: 1px solid rgba(250,204,21,.22);
+      margin-bottom: 6px;
+      font-weight: 800;
+      color: rgba(255,255,255,.92);
+    }
+    .recon-hype{
+      margin-top: 6px;
+      font-size: 11px;
+      color: rgba(253,230,138,.95);
+      text-align:center;
+      line-height: 1.2;
+    }
+
+  
+/* ===== SCROLL VERTICALE ABILITATO ===== */
+html, body{
+  height: auto !important;
+  min-height: 100%;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app{
+  height: auto !important;
+  max-height: none !important;
+}
+
+
+/* ===== NO GAMBLING VERTICALE LATO RUOTA ===== */
+.noGamblingSide{
+  position:absolute;
+  top:50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: .18em;
+  font-weight: 1000;
+  font-size: 14px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  background: rgba(2,6,23,0.55);
+  border: 1px solid rgba(248,250,252,0.25);
+  color:#fefce8;
+  text-shadow: 0 0 10px rgba(250,204,21,.55), 0 2px 0 rgba(0,0,0,.6);
+  z-index: 12;
+  pointer-events: none;
+  user-select:none;
+}
+.noGamblingSide.left{ left: -34px; }
+.noGamblingSide.right{ right: -34px; }
+
+@media (max-width: 420px){
+  .noGamblingSide{ font-size: 13px; padding: 9px 6px; }
+  .noGamblingSide.left{ left: -30px; }
+  .noGamblingSide.right{ right: -30px; }
+}
+
+
+    /* ===== BOX MASTER RICONOSCENZE (ORO GRANDE) ===== */
+    .recon-master-box{
+      margin: 12px auto 0;
+      width: 100%;
+      max-width: 360px;
+      border-radius: 20px;
+      padding: 16px 16px 14px;
+      background: linear-gradient(180deg,#fde68a,#facc15,#eab308);
+      border: 3px solid #78350f;
+      box-shadow:
+        0 0 30px rgba(250,204,21,.95),
+        inset 0 0 14px rgba(255,255,255,.42);
+      color:#000;
+    }
+    .recon-master-title{
+      text-align:center;
+      font-size: 16px;
+      font-weight: 1000;
+      letter-spacing: .12em;
+      margin-bottom: 12px;
+      color:#000;
+      text-shadow: 0 1px 0 rgba(255,255,255,.35);
+    }
+    .recon-master-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.08);
+      border: 1px solid rgba(120,53,15,.35);
+      font-weight: 1000;
+      color:#000;
+    }
+
+    /* Switch ON/OFF */
+    .master-switch{
+      position: relative;
+      width: 54px;
+      height: 28px;
+      flex: 0 0 auto;
+    }
+    .master-switch input{
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .master-slider{
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      background: #111827;
+      border-radius: 999px;
+      transition: .25s;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.15);
+    }
+    .master-slider:before{
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      left: 3px;
+      bottom: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: .25s;
+      box-shadow: 0 6px 14px rgba(0,0,0,.25);
+    }
+    .master-switch input:checked + .master-slider{
+      background: #16a34a;
+      box-shadow: 0 0 12px rgba(22,163,74,.75), inset 0 0 0 2px rgba(255,255,255,.15);
+    }
+    .master-switch input:checked + .master-slider:before{
+      transform: translateX(26px);
+    }
+
+
+/* ===== INLINE POSIZIONAMENTO ACCANTO A RICONOSCENZE ===== */
+.legend-flex{
+  display:flex;
+  gap:10px;
+}
+.recon-inline{
+  margin-top:8px;
+}
+
+/* ===== LABEL ON/OFF SULLO SWITCH ===== */
+.master-slider{
+  position:relative;
+}
+.master-slider .switch-label{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:10px;
+  font-weight:900;
+  color:#000;
+  pointer-events:none;
+}
+.master-slider .on{ left:6px; }
+.master-slider .off{ right:6px; color:#111; }
+.master-switch input:checked + .master-slider .off{ opacity:.3; }
+.master-switch input:not(:checked) + .master-slider .on{ opacity:.3; }
+
+
+/* ===== 3 COLONNE: RICONOSCENZE | CONTROLLO | LEGENDA PREMI ===== */
+.legend-cols.legend-flex{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+.legend-col-middle{
+  flex: 0 0 220px;
+}
+@media (max-width: 720px){
+  .legend-col-middle{ flex: 1 1 auto; }
+}
+
+
+/* ===== RIGHE MINOR / MEDIUM / MAJOR ORO ===== */
+.recon-master-row{
+  background: linear-gradient(180deg,#fde68a,#facc15,#eab308) !important;
+  border: 2px solid #78350f !important;
+  box-shadow:
+    inset 0 0 10px rgba(255,255,255,.45),
+    0 0 14px rgba(250,204,21,.75);
+}
+
+
+/* ===== SWITCH: VERDE ON / GRIGIO OFF ===== */
+.master-switch input:not(:checked) + .master-slider{
+  background:#6b7280 !important; /* grigio */
+  box-shadow:none !important;
+}
+.master-switch input:checked + .master-slider{
+  background:#16a34a !important; /* verde */
+  box-shadow:0 0 12px rgba(22,163,74,.9) !important;
+}
+.master-slider .switch-label{
+  color:#000 !important;
+}
+.master-switch input:not(:checked) + .master-slider .switch-label{
+  color:#111 !important;
+}
+
+/* ===== POPUP "JACKPOT ARMATO" (DORATO, SUSPENSE) ===== */
+#armPopup{
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0;
+}
+#armPopup.show{
+  opacity: 1;
+  animation: armBlink 1.05s ease-in-out infinite;
+}
+@keyframes armBlink{
+  0%{ transform: scale(.98); opacity:0; filter: brightness(1); }
+  20%{ transform: scale(1.02); opacity:1; filter: brightness(1.18); }
+  50%{ transform: scale(1.01); opacity:.55; filter: brightness(1.05); }
+  80%{ transform: scale(1.02); opacity:1; filter: brightness(1.18); }
+  100%{ transform: scale(.98); opacity:0; filter: brightness(1); }
+}
+  30%{ transform: translateX(-50%) scale(1.02); opacity:1; filter: brightness(1.18); }
+  60%{ transform: translateX(-50%) scale(1.01); opacity:.55; filter: brightness(1.05); }
+  100%{ transform: translateX(-50%) scale(.98); opacity:.25; filter: brightness(1); }
+}
+.arm-popup-card{
+  padding: 14px 20px;
+  border-radius: 18px;
+  background: radial-gradient(circle at 20% 0,#fef9c3,#facc15,#b45309);
+  border: 2px solid rgba(120,53,15,.95);
+  box-shadow:
+    0 0 28px rgba(250,204,21,.95),
+    0 0 90px rgba(250,204,21,.35),
+    inset 0 0 12px rgba(255,255,255,.35);
+  color:#111;
+  text-align:center;
+  max-width: min(560px, 92vw);
+}
+.arm-popup-title{
+  font-size: 16px;
+  font-weight: 1000;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color:#7c2d12;
+  text-shadow: 0 0 8px rgba(255,255,255,.35);
+}
+.arm-popup-sub{
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 900;
+  color:#111;
+}
+
+
+/* ===== SWITCH: VERDE (ON) / GRIGIO (OFF) ===== */
+.master-switch input:checked + .master-slider{
+  background:#16a34a !important;
+  box-shadow:0 0 12px rgba(22,163,74,.9) !important;
+}
+.master-switch input:not(:checked) + .master-slider{
+  background:#9ca3af !important;
+  box-shadow:none !important;
+}
+
+
+/* ===== ANCORAGGIO POPUP ARMATO NEL BOX 'ULTIMO RISULTATO' ===== */
+#resultBox{ position: relative; overflow: hidden; }
+
+
+/* ===== POPUP ARMATO NEL BOX CONTROLLO (SOPRA MINOR/MEDIUM/MAJOR) ===== */
+.recon-master-box{ position: relative; overflow: hidden; }
+.recon-master-box .arm-slot{ margin: 10px 0 12px; min-height: 0; }
+.recon-master-box #armPopup{
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+  transform: none !important;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 60;
+}
+.recon-master-box #armPopup.show{
+  opacity: 1;
+  animation: armBlinkInline 1.05s ease-in-out infinite;
+}
+@keyframes armBlinkInline{
+  0%{ transform: scale(.98); opacity:0; filter: brightness(1); }
+  20%{ transform: scale(1.02); opacity:1; filter: brightness(1.18); }
+  50%{ transform: scale(1.01); opacity:.55; filter: brightness(1.05); }
+  80%{ transform: scale(1.02); opacity:1; filter: brightness(1.18); }
+  100%{ transform: scale(.98); opacity:0; filter: brightness(1); }
+}
+
+
+    .lock-tag{
+      margin-left:auto;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:.3px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      color:#cbd5e1;
+      min-width:74px;
+      text-align:center;
+    }
+    .lock-tag.locked{
+      border-color: rgba(255,77,109,.40);
+      background: rgba(255,77,109,.10);
+      color:#fecaca;
+    }
+    .recon-master-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+
+/* ===== UNIVERSE TICKER (stile TikTok, 1 riga) ===== */
+#jackpotUniverse{ position: fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index: 9999; }
+#jackpotUniverse video{ display:block; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.45); max-width:min(92vw,520px); }
+.universe-ticker{
+  position:absolute;
+  left:0;
+  right:0;
+  top:-44px; /* subito sopra al video */
+  margin:0 auto;
+  height: 38px; /* ~1cm */
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 14px;
+  border-radius:999px;
+  background: linear-gradient(90deg, rgba(167,74,255,.95), rgba(122,35,255,.92), rgba(188,92,255,.95));
+  box-shadow: 0 0 18px rgba(176, 93, 255, .55), 0 0 2px rgba(255,255,255,.35) inset;
+  color:#fff;
+  font-weight:900;
+  font-size:14px;
+  letter-spacing:.2px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  pointer-events:none;
+  opacity:0;
+  transform: translateX(-120%);
+}
+.universe-ticker.show{
+  opacity:1;
+}
+@keyframes universeIn{
+  from{ transform: translateX(-120%); opacity:0; }
+  to{ transform: translateX(0%); opacity:1; }
+}
+@keyframes universeOut{
+  from{ transform: translateX(0%); opacity:1; }
+  to{ transform: translateX(120%); opacity:0; }
+}
+@keyframes universeBlink{
+  0%{ filter: brightness(1); }
+  50%{ filter: brightness(1.35); }
+  100%{ filter: brightness(1); }
+}
+
+/* ===== TICKER JACKPOT (stile TikTok) ===== */
+#jackpotTicker{
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 170px; /* verrà riallineato via JS sopra al video Universe */
+  z-index: 9999;
+  width: min(92vw, 720px);
+  height: 38px; /* ~1cm */
+  border-radius: 999px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 1000;
+  letter-spacing: .02em;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: radial-gradient(circle at 30% 10%, rgba(255,255,255,.25), rgba(255,255,255,0) 55%),
+              linear-gradient(90deg, rgba(168,85,247,1), rgba(99,102,241,1));
+  box-shadow:
+    0 0 14px rgba(168,85,247,.85),
+    0 0 34px rgba(99,102,241,.55),
+    inset 0 0 10px rgba(255,255,255,.22);
+  pointer-events: none;
+  opacity: 0;
+}
+#jackpotTicker.show{
+  opacity: 1;
+}
+#jackpotTicker.blink{
+  animation: tickerBlink 0.85s ease-in-out infinite;
+}
+@keyframes tickerBlink{
+  0%{ filter: brightness(1.0); }
+  50%{ filter: brightness(1.35); }
+  100%{ filter: brightness(1.0); }
+}
+
+
+
+  /* ===================== VIDEO TICKER (1 RIGA, STILE TIKTOK) ===================== */
+  .video-ticker{
+    position: absolute;
+    left: 50%;
+    top: -44px; /* poco sopra al video */
+    transform: translateX(-50%);
+    height: 10mm; /* ~1 cm */
+    max-width: min(560px, 94vw);
+    width: 94vw;
+    border-radius: 999px;
+    padding: 0 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: 14px;
+    letter-spacing: .02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #f8fafc;
+    background: linear-gradient(90deg, rgba(168,85,247,.95), rgba(99,102,241,.95));
+    box-shadow:
+      0 0 14px rgba(168,85,247,.75),
+      0 0 26px rgba(99,102,241,.55),
+      0 12px 32px rgba(0,0,0,.55);
+    border: 1px solid rgba(255,255,255,.18);
+    opacity: 0;
+    pointer-events:none;
+    z-index: 10005;
+  }
+  .video-ticker.enter{ animation: tickerIn .42s ease-out forwards; }
+  .video-ticker.hold{ opacity:1; animation: tickerBlink .45s ease-in-out infinite alternate; }
+  .video-ticker.exit{ animation: tickerOut .42s ease-in forwards; }
+
+  @keyframes tickerIn{
+    from{ opacity:0; transform: translateX(-170%) ; }
+    to  { opacity:1; transform: translateX(-50%); }
+  }
+  @keyframes tickerOut{
+    from{ opacity:1; transform: translateX(-50%); }
+    to  { opacity:0; transform: translateX(170%); }
+  }
+  @keyframes tickerBlink{
+    from{ filter: brightness(1); }
+    to  { filter: brightness(1.35); }
+  }
+
+  
+/* ===================== PRE-JACKPOT FX (RALLENTY + SIRENA) ===================== */
+.prejackpot-shake{
+  animation: preJackpotShake .12s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes preJackpotShake{
+  from{ transform: translateX(-2px); }
+  to{ transform: translateX(2px); }
+}
+
+  /* ===================== LION VIDEO (PREMI SPECIALI) ===================== */
+  .jackpot-lion{
+    position: fixed;
+    bottom: -340px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(520px, 96vw);
+    z-index: 10002;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity, bottom;
+  }
+  .jackpot-lion.show{ animation: universeRise 0.85s cubic-bezier(.12,.9,.18,1) forwards; }
+  .jackpot-lion video{
+    width: 100%;
+    display:block;
+    border-radius: 20px;
+    box-shadow:
+      0 0 40px rgba(168,85,247,.80),
+      0 0 110px rgba(99,102,241,.55);
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(2,6,23,.65);
+  }
+
+  /* ===================== HOLD FRAME (UNIVERSE + LION) ===================== */
+  .jackpot-universe.hold,
+  .jackpot-lion.hold{
+    bottom: 18px !important;
+    opacity: 1 !important;
+  }
+  .jackpot-universe.hold video,
+  .jackpot-lion.hold video{
+    animation: holdBlink 0.65s ease-in-out infinite alternate;
+  }
+  @keyframes holdBlink{
+    from{ filter: brightness(1); }
+    to  { filter: brightness(1.25); }
+  }
+</style>
+</head>
+<body>
+  <!-- SFONDO DUBAI (dietro a tutto) -->
+  <div class="bg-dubai"></div>
+  <div class="bg-dubai-dark"></div>
+
+
+  <!-- FX LAYER -->
+  <div id="fxLayer"></div>
+
+  <!-- JACKPOT BOTTOM + VEGAS FX -->
+  <div id="jackpotBottom" class="jackpot-bottom hidden">💥 JACKPOT LIVE 💥</div>
+  <!-- POPUP ARMAMENTO JACKPOT (MINOR/MEDIUM/MAJOR) -->
+  <div id="armPopup" class="hidden" aria-live="polite"></div>
+
+  <div id="fireworkLayer" aria-hidden="true"></div>
+
+  <!-- TICKER JACKPOT (stile TikTok) -->
+  <div id="jackpotTicker" class="jackpot-ticker hidden" aria-live="polite"></div>
+
+  <!-- UNIVERSE JACKPOT VIDEO + MUSIC (BOTTOM) -->
+  <div id="jackpotUniverse" class="jackpot-universe hidden" aria-hidden="true">
+    <div id="universeTicker" class="video-ticker hidden" aria-live="polite"></div>
+    <video id="universeVideo" src="tiktokuniverse.mp4" playsinline webkit-playsinline muted preload="auto"></video>
+  </div>
+  <!-- LION (PREMI SPECIALI) VIDEO (BOTTOM) -->
+  <div id="jackpotLion" class="jackpot-lion hidden" aria-hidden="true">
+    <div id="lionTicker" class="video-ticker hidden" aria-live="polite"></div>
+    <video id="lionVideo" src="leone.mp4" playsinline webkit-playsinline muted preload="auto"></video>
+  </div>
+
+  <audio id="universeAudio" src="tiktok_universo.mp3" preload="auto"></audio>
+  <audio id="lionAudio" src="leone.mp3" preload="auto"></audio>
+  <audio id="sirenAudio" src="sirena.mp3" preload="auto"></audio>
+<!-- AUDIO -->
+  <audio id="bgMusic" src="musica_bg.mp3" loop autoplay muted></audio>
+  <audio id="spinSound" src="spin.mp3" preload="auto"></audio>
+  <audio id="winSmallSound" src="win_small.mp3" preload="auto"></audio>
+  <audio id="winMediumSound" src="win_medium.mp3" preload="auto"></audio>
+  <audio id="jackpotSound" src="jackpot.mp3" preload="auto"></audio>
+  <audio id="loseSound" src="lose.mp3" preload="auto"></audio>
+  <audio id="suspenseAudio" src="SUSPENCE.mp3" preload="auto"></audio>
+
+  <div id="prize-overlay" class="hidden"></div>
+
+  <!-- LOGIN -->
+  <!-- APP RUOTA -->
+  <div class="app" id="appRoot">
+    <header>
+      <div class="badge"><span>SMARTPHONEMANIA</span> · Ruota Jackpot</div>
+      <h1>SMARTPHONEMANIA WHEEL</h1>
+      <div class="cta-missile">SALI SUL MISSILE !!!</div>
+      <p class="subtitle">Gioco interno per le live · Jackpot 45.000 monete</p>
+    </header>
+<div id="multiStatus" class="multi-status hidden">Giro 1 di 1</div>
+
+    <div class="content">
+
+      <div class="left-controls">
+  <div style="text-align:center; font-weight:900; font-size:16px; margin-bottom:8px; letter-spacing:.06em;">
+    LA RUOTA DI YARIZARD🐉
+  </div>
+
+        <button class="btn btn-primary" id="spinBtn">🎡 Gira la ruota</button>
+
+<div class="info-row" style="margin-top:10px; display:flex; gap:8px; justify-content:center;">
+  <div class="chip compact">
+    💰 Monete per giro
+    <select id="spinCostSelector" class="multi-input">
+      <option value="100" selected>100</option>
+      <option value="250">250</option>
+      <option value="500">500</option>
+      <option value="1000">1000</option>
+      <option value="5000">5000</option>
+      <option value="10000">10000</option>
+      <option value="25000">25000</option>
+    
+    </select>
+  </div>
+
+  <div class="chip compact">
+    🔢 Giri multipli
+    <input
+      type="number"
+      id="multiSpinsInput"
+      min="1"
+      max="100"
+      value="1"
+      class="multi-input"
+    />
+  </div>
+</div>
+
+        <button class="btn btn-secondary" id="resetBtn">🔄 Azzera sessione</button>
+        <div class="music-toggle" id="musicToggle">🔊 Musica di sottofondo: OFF (tocca per ON)</div>
+      </div>
+      <div class="left">
+        <div class="wheel-wrapper">
+          <div class="noGamblingSide left">NO&nbsp;GAMBLING</div>
+          <div class="noGamblingSide right">NO&nbsp;GAMBLING</div>
+          <div class="wheel-ring"></div>
+          <div class="garland-ring"></div>
+          <div id="textRing" class="text-ring"></div>
+          <div id="ledRing" class="led-ring"></div>
+          <div class="light-sweep-outer"></div>
+          <div class="wheel-spark-ring" aria-hidden="true"></div>
+
+
+          <div class="wheel" id="wheel">
+            <div class="wheel-center"></div>
+            <div class="wheel-logo">
+              <img src="logo_smartphonemania.png" alt="Smartphone Mania Agency Logo" />
+            </div>
+          </div>
+
+          <div class="wheel-snow"></div>
+          <div class="pointer"></div>
+          <div class="pointer-base"></div>
+          <!-- TIKTOK UNIVERSE WINGS (SCINTILLANTI) -->
+
+          </div>
+
+        
+        
+
+          </div>
+</div>
+
+        <div class="info-row">
+            </div>
+
+          <div class="info-row">
+            </div>
+
+      <div class="right">
+
+        <section class="legend" style="margin-bottom:5px; text-align:center; border-color: rgba(220,38,38,0.7); background:rgba(127,29,29,0.4);">
+          <div class="legend-title" style="justify-content:center; color:#fecaca;">
+            <span>❌</span><span style="font-size:14px;">NO GAMBLING</span>
+          </div>
+          <p style="font-size:11px; color:#fee2e2; text-align:center; line-height:1.3; margin-top:2px;">
+            Questa ruota non è un gioco d’azzardo.<br>
+            È un gioco interno creato solo per ringraziare e gratificare i sostenitori che supportano le mie live.
+          </p>
+        </section>
+
+        <section class="nick">
+          <div class="nick-title"><span>👤</span>Nick giocatore</div>
+          <div class="nick-input-row">
+            <input
+              type="text"
+              id="nickInput"
+              class="nick-input"
+              placeholder="Inserisci il tuo Nick (es. Benito, Rachele...)"
+            />
+            <button class="btn btn-secondary btn-small" id="saveNickBtn">Salva Nick</button>
+          </div>
+          <div class="nick-current" id="currentNick">Nessun Nick selezionato.</div>
+        </section>
+
+        <section class="legend legend-combined">
+          <div class="legend-cols legend-flex">
+
+            <div class="legend-col">
+              <section class="result" id="resultBox">
+                <div class="result-title"><span>🎁</span>Ultimo risultato</div>
+                <p>Nessun giro ancora effettuato. Premi "Gira la ruota" per iniziare.</p>
+              </section>
+
+              <section class="stats-inline">
+                <div class="stats-title"><span>📊</span>Statistiche</div>
+                <div class="stats-row"><span>Monete spese totali</span><span id="statSpins">0</span></div>
+<div class="stats-row"><span>Spin effettuati</span><span id="statSpinCount">0</span></div>
+                <div class="stats-row"><span>Premi totali erogati</span><span id="statPrizes">0</span></div>
+              </section>
+
+              <section class="recon-box">
+                <div class="recon-title">👑 RICONOSCENZE (Mini / Medium / Major)</div>
+                <div class="recon-sub">Ogni spin destina automaticamente il <b>10%</b> del payout (60%) in accumulo riconoscenze.</div>
+                <div class="recon-row"><span>🟡 MINI</span><span id="reconMinor">0</span></div>
+                <div class="recon-row"><span>🟠 MEDIUM</span><span id="reconMedium">0</span></div>
+                <div class="recon-row"><span>🟨 MAJOR</span><span id="reconMajor">0</span></div>
+                
+                <button class="btn btn-secondary btn-small" id="resetReconBtn" style="width:100%; margin-top:8px;">
+                  🔄 Azzera premi speciali
+                </button>
+
+    <div class="recon-hype">✨ Quando una riconoscenza “scatta”… BOOM! 💥<br/>Esce un premio speciale e la somma viene azzerata.</div>
+              </section>
+
+              <div class="recon-master-row">
+                  <span>MINOR</span>
+                  <label class="master-switch">
+                    <input type="checkbox" id="masterMinor">
+                    <span class="master-slider">
+                      <span class="switch-label on">ON</span>
+                      <span class="switch-label off">OFF</span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="recon-master-row">
+                  <span>MEDIUM</span>
+                  <label class="master-switch">
+                    <input type="checkbox" id="masterMedium">
+                    <span class="master-slider">
+                      <span class="switch-label on">ON</span>
+                      <span class="switch-label off">OFF</span>
+                    </span>
+                  </label>
+                </div>
+
+                <div class="recon-master-row">
+                  <span>MAJOR</span>
+                  <span class="lock-tag" id="lockMajor"></span>
+                  <label class="master-switch">
+                    <input type="checkbox" id="masterMajor">
+                    <span class="master-slider">
+                      <span class="switch-label on">ON</span>
+                      <span class="switch-label off">OFF</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="legend-col legend-col-middle">
+              <!-- ===== BOX MASTER RICONOSCENZE (ORO) ===== -->
+              <div class="recon-master-box recon-inline">
+                <div class="recon-master-title">👑 CONTROLLO RICONOSCENZE</div>
+
+                <div class="arm-slot" aria-live="polite"></div>
+            </div>
+
+<div class="legend-col">
+              <div class="legend-title"><span>📜</span>Legenda premi (per 1 giro da 100)</div>
+              <ul class="legend-list">
+                <li>❌ Nessun premio</li>
+                <li>🎁 100 monete</li>
+                <li>🎁 250 monete</li>
+                <li>🎁 500 monete</li>
+                <li>🎁 1.000 monete</li>
+                <li>🎁 2.500 monete</li>
+                <li>💥 JACKPOT 45.000 monete</li>
+              </ul>
+              <p class="xmas-msg">🍀 Buona fortuna da SmartphoneMania Agency 🍀</p>
+            </div>
+          </div>
+        </section>
+
+        
+        
+        <section class="leaderboard">
+          <div class="leaderboard-title"><span>🏆</span>Classifica benefattori</div>
+
+          <ol class="lb-top3" id="leaderboardTop3">
+            <li>Nessun benefattore registrato per ora.</li>
+          </ol>
+
+          <div style="display:flex; gap:6px; align-items:center; margin-top:6px; flex-wrap:wrap;">
+            <button class="lb-toggle" id="lbToggleBtn" style="flex:1;">📜 Vedi tutti</button>
+            <select id="donorSelect" class="multi-input" style="width:100%; max-width:260px; text-align:left;">
+              <option value="">Seleziona un donatore…</option>
+            </select>
+          </div>
+
+          <div class="lb-all hidden" id="leaderboardAllWrap">
+            <ol id="leaderboardAll"></ol>
+          </div>
+        </section>
+
+
+
+        <p class="footer-note">
+          Un giro da 5000 monete equivale a 50 giri BASE da 100, con la stessa logica di payout e premi proporzionati.
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ===================== PRO MODE FX ===================== */
+const fxLayer = document.getElementById("fxLayer");
+
+// ===== MASTER SWITCH RICONOSCENZE =====
+const masterMinor  = document.getElementById("masterMinor");
+const masterMedium = document.getElementById("masterMedium");
+const masterMajor  = document.getElementById("masterMajor");
+
+
+
+// ===== Helper: premi speciali attivi (priorità assoluta) =====
+function specialsAnyOn(){
+  return (!!masterMinor && masterMinor.checked) || (!!masterMedium && masterMedium.checked) || (!!masterMajor && masterMajor.checked);
+}
+let _lastSpecialAnyOn = specialsAnyOn();
+let universePausedBySpecial = _lastSpecialAnyOn;
+
+// ===== Persistenza interruttori riconoscenze (default OFF) =====
+// Regola: ad ogni nuova sessione i premi speciali sono OFF,
+// salvo che tu li abbia attivati (salvati) manualmente.
+const LS_RECON_MINOR  = "sm_recon_minor_enabled";
+const LS_RECON_MEDIUM = "sm_recon_medium_enabled";
+const LS_RECON_MAJOR  = "sm_recon_major_enabled";
+
+function lsGetBool(key, fallback=false){
+  try{
+    const v = localStorage.getItem(key);
+    if(v === null) return fallback;
+    return v === "1" || v === "true";
+  }catch(e){
+    return fallback;
+  }
+}
+function lsSetBool(key, val){
+  try{ localStorage.setItem(key, val ? "1" : "0"); }catch(e){}
+}
+
+function initReconToggles(){
+  // default OFF se non esiste un valore salvato
+  if(masterMinor)  masterMinor.checked  = lsGetBool(LS_RECON_MINOR,  false);
+  if(masterMedium) masterMedium.checked = lsGetBool(LS_RECON_MEDIUM, false);
+  if(masterMajor)  masterMajor.checked  = lsGetBool(LS_RECON_MAJOR,  false);
+
+  // salva ogni modifica e aggiorna UI "🔒 BLOCCATO / 🟢 ATTIVO"
+  const bind = (el, key)=>{
+    if(!el) return;
+    el.addEventListener("change", ()=>{
+      lsSetBool(key, el.checked);
+      updateReconLockUI();
+    });
+  };
+  bind(masterMinor,  LS_RECON_MINOR);
+  bind(masterMedium, LS_RECON_MEDIUM);
+  bind(masterMajor,  LS_RECON_MAJOR);
+
+  updateReconLockUI();
+}
+
+// Chiama subito (script è a fine body, DOM già pronto)
+initReconToggles();
+
+
+function updateReconLockUI(){
+  try{
+    const set = (chk, el, name)=>{
+      if(!el) return;
+      if(!chk){
+        el.textContent = "";
+        el.classList.remove("locked");
+        return;
+      }
+      if(chk.checked){
+        el.textContent = "🟢 ATTIVO";
+        el.classList.remove("locked");
+      } else {
+        el.textContent = "🔒 BLOCCATO";
+        el.classList.add("locked");
+      }
+    };
+    set(masterMinor, document.getElementById("lockMinor"), "MINOR");
+    set(masterMedium, document.getElementById("lockMedium"), "MEDIUM");
+    set(masterMajor, document.getElementById("lockMajor"), "MAJOR");
+
+    // Priorità assoluta ai premi speciali: pausa/ripartenza ciclo Universe + ciclo per ciascun premio
+    const anyOn = specialsAnyOn();
+
+    // Inizializza start/target (600k–1.5M) per ciascun premio speciale quando è ON e non ha ancora un ciclo
+    const initSpecialCycle = (chk, startKey, targetKey)=>{
+      if(!chk) return;
+      if(chk.checked){
+        const has = (()=>{ try{ return !!localStorage.getItem(startKey) && !!localStorage.getItem(targetKey); }catch(e){ return false; }})();
+        if(has) return;
+        const start = Math.round(totalNet || 0);
+        const target = start + SPECIAL_MIN_GROSS + Math.floor(Math.random() * ((SPECIAL_MAX_GROSS - SPECIAL_MIN_GROSS) + 1));
+        try{
+          localStorage.setItem(startKey, String(start));
+          localStorage.setItem(targetKey, String(target));
+        }catch(e){}
+      } else {
+        // OFF: pulisci i marker ciclo (sarà rigenerato quando torni ON)
+        try{ localStorage.removeItem(startKey); localStorage.removeItem(targetKey); }catch(e){}
+      }
+    };
+    initSpecialCycle(masterMinor,  LS_RECON_MINOR_START,  LS_RECON_MINOR_TARGET);
+    initSpecialCycle(masterMedium, LS_RECON_MEDIUM_START, LS_RECON_MEDIUM_TARGET);
+    initSpecialCycle(masterMajor,  LS_RECON_MAJOR_START,  LS_RECON_MAJOR_TARGET);
+
+    if(anyOn){
+      // Pausa totale Universe finché esistono speciali ON
+      universePausedBySpecial = true;
+      _lastSpecialAnyOn = true;
+
+      try{ if (typeof disableArmedAudioMode === "function") disableArmedAudioMode(); }catch(e){}
+      try{
+        universeCycleActive = false;
+        localStorage.setItem(UNIVERSE_CYCLE_ACTIVE_KEY, "0");
+        localStorage.removeItem(JACKPOT_TARGET_KEY);
+        jackpotTargetSpin = null;
+      }catch(e){}
+    } else {
+      // Tutti OFF: riparte DA ZERO il ciclo Universe da ORA (600k–1M), con riserva/target nuovi
+      if(_lastSpecialAnyOn){
+        universePausedBySpecial = false;
+        _lastSpecialAnyOn = false;
+        try{ startNewUniverseCycle(Math.round(totalNet || 0)); }catch(e){}
+      } else {
+        universePausedBySpecial = false;
+        _lastSpecialAnyOn = false;
+      }
+    }
+  }catch(e){}
+}
+if(masterMinor) masterMinor.addEventListener("change", updateReconLockUI);
+if(masterMedium) masterMedium.addEventListener("change", updateReconLockUI);
+if(masterMajor) masterMajor.addEventListener("change", updateReconLockUI);
+updateReconLockUI();
+/* ===== POPUP ARMAMENTO JACKPOT (SUSPENSE) ===== */
+const armPopup = document.getElementById("armPopup");
+let armPopupMoved = false;
+(() => {
+  try{
+    const slot = document.querySelector('.recon-master-box .arm-slot');
+    if(slot && armPopup && !armPopupMoved){
+      slot.appendChild(armPopup);
+      armPopupMoved = true;
+    }
+  }catch(e){}
+})();
+let armPopupTimer = null;
+
+function hideArmPopup(){
+  if(!armPopup) return;
+  armPopup.classList.remove('show');
+  armPopup.classList.add('hidden');
+  armPopup.innerHTML = '';
+  if(armPopupTimer) { clearTimeout(armPopupTimer); armPopupTimer = null; }
+}
+
+function showArmPopup(label){
+  if(!armPopup) return;
+
+  // Build card
+  armPopup.innerHTML = `
+    <div class="arm-popup-card">
+      <div class="arm-popup-title">JACKPOT ${label} ARMATO</div>
+      <div class="arm-popup-sub">JACKPOT USCIRÀ A BREVE !</div>
+    </div>
+  `;
+
+  armPopup.classList.remove("hidden");
+  armPopup.classList.add("show");
+
+  // Auto hide after a few seconds
+  if(armPopupTimer) clearTimeout(armPopupTimer);
+  armPopupTimer = setTimeout(()=>{
+    armPopup.classList.remove("show");
+    armPopup.classList.add("hidden");
+    armPopup.innerHTML = "";
+  }, 6500);
+}
+
+function getArmedLabel(){
+  // Priorità: MAJOR > MEDIUM > MINOR
+  if(masterMajor && masterMajor.checked) return 'MAJOR';
+  if(masterMedium && masterMedium.checked) return 'MEDIUM';
+  if(masterMinor && masterMinor.checked) return 'MINOR';
+  return '';
+}
+
+function bindArmSwitch(el, label){
+  if(!el) return;
+  el.addEventListener("change", ()=>{
+    // ON => verde + popup suspense
+    if(el.checked){
+      showArmPopup(label);
+    }
+  });
+}
+
+// Bind switches
+bindArmSwitch(masterMinor, "MINOR");
+bindArmSwitch(masterMedium, "MEDIUM");
+bindArmSwitch(masterMajor, "MAJOR");
+
+/* ===== AUDIO MODE: JACKPOT ARMATO (SUSPENCE) ===== */
+const suspenseAudio = document.getElementById("suspenseAudio");
+let armedAudioMode = false;
+let prevBgMuted = false;
+let prevBgVol = 0.25;
+
+/** Attiva modalità suspense: muta musica + muta suoni ruota e avvia SUSPENCE.mp3 */
+function enableArmedAudioMode(){
+  if(armedAudioMode) return;
+  armedAudioMode = true;
+
+  // Muta musica di sottofondo durante lo spin
+  if (typeof bgMusic !== "undefined" && bgMusic){
+    prevBgMuted = bgMusic.muted;
+    prevBgVol = bgMusic.volume;
+    try{
+      bgMusic.muted = true;
+      bgMusic.volume = 0;
+    }catch(e){}
+  }
+
+  // Ferma eventuali sfx in corso
+  try{
+    [spinSound, winSmallSound, winMediumSound, loseSound, jackpotSound].forEach(s=>{
+      if(!s) return;
+      s.pause();
+      s.currentTime = 0;
+    });
+  }catch(e){}
+
+  // Avvia suspense
+  if (suspenseAudio){
+    try{
+      suspenseAudio.loop = true;
+      suspenseAudio.currentTime = 0;
+      suspenseAudio.volume = 1;
+      suspenseAudio.play().catch(()=>{});
+    }catch(e){}
+  }
+}
+
+/** Disattiva modalità suspense: ferma SUSPENCE.mp3 e ripristina musica + suoni */
+function disableArmedAudioMode(){
+  if(!armedAudioMode) return;
+  armedAudioMode = false;
+
+  // Stop suspense
+  if (suspenseAudio){
+    try{
+      suspenseAudio.pause();
+      suspenseAudio.currentTime = 0;
+    }catch(e){}
+  }
+
+  // Ripristina musica normale
+  if (typeof bgMusic !== "undefined" && bgMusic){
+    try{
+      bgMusic.muted = prevBgMuted;
+      bgMusic.volume = prevBgVol;
+      // se era in autoplay muted, lascia la tua logica esistente; qui non forziamo play
+    }catch(e){}
+  }
+}
+
+/** Utility: blocca i suoni della ruota quando siamo in modalità armed */
+function playSfx(audioEl){
+  if(!audioEl) return;
+  if(armedAudioMode) return; // durante armed mode, nessun suono ruota
+  try{
+    audioEl.currentTime = 0;
+    audioEl.play().catch(()=>{});
+  }catch(e){}
+}
+
+
+
+
+function fxFlash(){
+  if(!fxLayer) return;
+  const flash = document.createElement("div");
+  flash.className = "fx-flash";
+  fxLayer.appendChild(flash);
+  setTimeout(()=>flash.remove(), 1200);
+}
+
+function spawnConfettiBurst(count=70){
+  if(!fxLayer) return;
+  const vw = window.innerWidth || 360;
+  for(let i=0;i<count;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    // colori confetti (oro / rosso / verde / blu)
+    const palette = [
+      "linear-gradient(180deg, rgba(250,204,21,1), rgba(180,83,9,1))",
+      "linear-gradient(180deg, rgba(239,68,68,1), rgba(127,29,29,1))",
+      "linear-gradient(180deg, rgba(34,197,94,1), rgba(22,101,52,1))",
+      "linear-gradient(180deg, rgba(56,189,248,1), rgba(30,64,175,1))",
+      "linear-gradient(180deg, rgba(167,139,250,1), rgba(88,28,135,1))",
+    ];
+    c.style.background = palette[(Math.random()*palette.length)|0];
+
+    const x0 = Math.floor(Math.random()*vw);
+    const drift = (Math.random() < .5 ? -1 : 1) * (50 + Math.random()*260);
+    c.style.left = x0 + "px";
+    c.style.setProperty("--xStart", x0 + "px");
+    c.style.setProperty("--xEnd", (x0 + drift) + "px");
+    c.style.width = (7 + Math.random()*10) + "px";
+    c.style.height = (10 + Math.random()*14) + "px";
+    c.style.animationDuration = (1.2 + Math.random()*1.2) + "s";
+    c.style.animationDelay = (Math.random()*0.15) + "s";
+    fxLayer.appendChild(c);
+    setTimeout(()=>c.remove(), 2600);
+  }
+}
+
+function proJackpotShake(){
+  if(!appRoot) return;
+  appRoot.classList.remove("jackpot-shake");
+  void appRoot.offsetWidth;
+  appRoot.classList.add("jackpot-shake");
+  setTimeout(()=>appRoot.classList.remove("jackpot-shake"), 900);
+}
+
+function wheelJackpotGlow(){
+  if(!wheel) return;
+  wheel.classList.remove("jackpot-glow");
+  void wheel.offsetWidth;
+  wheel.classList.add("jackpot-glow");
+  setTimeout(()=>wheel.classList.remove("jackpot-glow"), 900);
+}
+
+/* PRO MODE: pacchetto completo jackpot */
+
+/* ===== JACKPOT TOP BANNER CON LABEL (stessa animazione jackpot) ===== */
+function showJackpotTopLabel(label){
+  const jb = document.getElementById("jackpotBottom");
+  if(!jb) return;
+  jb.textContent = `💥 JACKPOT ${label} 💥`;
+  jb.classList.remove("hidden");
+  jb.classList.add("show");
+  setTimeout(()=>{
+    jb.classList.remove("show");
+    jb.classList.add("hidden");
+    jb.textContent = "💥 JACKPOT LIVE 💥";
+  }, 3200);
+}
+
+function showJackpotBottom(){
+  const jb = document.getElementById("jackpotBottom");
+  if(!jb) return;
+  jb.classList.remove("hidden");
+  jb.classList.add("show");
+  // hide after 3s
+  setTimeout(()=>{
+    jb.classList.remove("show");
+    jb.classList.add("hidden");
+  }, 3000);
+}
+
+function lockUIForJackpot(ms=5000){
+  const btns = [spinBtn, resetBtn];
+  btns.forEach(b=>{
+    if(!b) return;
+    b.classList.add("locked");
+    b.disabled = true;
+  });
+
+  setTimeout(()=>{
+    // Se NON siamo in lock definitivo (gameLocked=false), riabilita lo spin.
+    if(spinBtn && !gameLocked){
+      spinBtn.classList.remove("locked");
+      spinBtn.disabled = false;
+    }
+    // resetBtn torna sempre usabile
+    if(resetBtn){
+      resetBtn.classList.remove("locked");
+      resetBtn.disabled = false;
+    }
+  }, ms);
+}
+
+function spawnFireworksBottom(bursts=4){
+  const layer = document.getElementById("fireworkLayer");
+  if(!layer) return;
+
+  const vw = window.innerWidth || 360;
+  const vh = window.innerHeight || 640;
+
+  const rocketCount = Math.max(3, bursts * 2);
+  for(let r=0;r<rocketCount;r++){
+    const rocket = document.createElement("div");
+    rocket.className = "fw-rocket";
+    const x = Math.floor(vw * (0.15 + Math.random()*0.70));
+    rocket.style.left = x + "px";
+    rocket.style.setProperty("--yEnd", (-Math.floor(vh*(0.45 + Math.random()*0.30))) + "px");
+    layer.appendChild(rocket);
+
+    const onEnd = () => {
+      // burst sparks
+      const sparks = 18 + ((Math.random()*10)|0);
+      for(let i=0;i<sparks;i++){
+        const s = document.createElement("div");
+        s.className = "fw-spark";
+        s.style.left = x + "px";
+        s.style.bottom = Math.floor(vh*(0.35 + Math.random()*0.25)) + "px";
+        const ang = Math.random()*Math.PI*2;
+        const dist = 90 + Math.random()*160;
+        s.style.setProperty("--dx", Math.cos(ang)*dist + "px");
+        s.style.setProperty("--dy", Math.sin(ang)*dist + "px");
+        s.style.animationDuration = (0.9 + Math.random()*0.6) + "s";
+        layer.appendChild(s);
+        setTimeout(()=>s.remove(), 1400);
+      }
+      rocket.removeEventListener("animationend", onEnd);
+      rocket.remove();
+    };
+
+    rocket.addEventListener("animationend", onEnd);
+  }
+}
+
+
+let universeUnlocked = false;
+
+function armUniverseMedia(){
+  if(universeUnlocked) return;
+
+  const ua = document.getElementById("universeAudio");
+  const uv = document.getElementById("universeVideo");
+
+  // Must run inside a real user gesture (e.g. click on Spin)
+  if (ua){
+    ua.volume = 1;
+    // iOS: priming works more reliably if muted during the warm-up play
+    ua.muted = true;
+    try{
+      ua.currentTime = 0;
+      ua.play().then(()=>{
+        ua.pause();
+        ua.currentTime = 0;
+        ua.muted = false;
+        universeUnlocked = true;
+      }).catch(()=>{});
+    }catch(e){}
+  }
+
+  if (uv){
+    uv.muted = true; // keep video muted, audio comes from MP3
+    try{
+      uv.currentTime = 0;
+      uv.play().then(()=>{
+        uv.pause();
+        uv.currentTime = 0;
+        universeUnlocked = true;
+      }).catch(()=>{});
+    }catch(e){}
+  }
+}
+
+
+/* ===== UNIVERSE TICKER (1 riga stile TikTok) ===== */
+const universeTicker = document.getElementById("universeTicker");
+let universeTickerTimers = [];
+
+function hideUniverseTickerInstant(){
+  if(!universeTicker) return;
+  try{ universeTicker.classList.add("hidden"); }catch(e){}
+  try{ universeTicker.classList.remove("enter","hold","exit"); }catch(e){}
+  // clear timers
+  try{ (universeTickerTimers||[]).forEach(t=>clearTimeout(t)); }catch(e){}
+  universeTickerTimers = [];
+}
+
+function showUniverseTicker(text, holdMs=5000){
+  if(!universeTicker) return;
+  hideUniverseTickerInstant();
+  universeTicker.textContent = text;
+
+  universeTicker.classList.remove("hidden","enter","hold","exit");
+  universeTicker.classList.add("enter");
+
+  // entra -> si ferma -> lampeggia -> esce
+  const tIn = 430;
+  const tOut = 430;
+
+  universeTickerTimers.push(setTimeout(()=>{
+    universeTicker.classList.remove("enter");
+    universeTicker.classList.add("hold");
+  }, tIn));
+
+  universeTickerTimers.push(setTimeout(()=>{
+    universeTicker.classList.remove("hold");
+    universeTicker.classList.add("exit");
+  }, tIn + Math.max(0, holdMs)));
+
+  universeTickerTimers.push(setTimeout(()=>{
+    universeTicker.classList.add("hidden");
+    universeTicker.classList.remove("exit");
+  }, tIn + Math.max(0, holdMs) + tOut));
+}
+
+let lionTickerTimers = [];
+function hideLionTickerInstant(){
+  const t = document.getElementById("lionTicker");
+  if(!t) return;
+  try{ t.classList.add("hidden"); }catch(e){}
+  try{ t.classList.remove("enter","hold","exit"); }catch(e){}
+  try{ (lionTickerTimers||[]).forEach(x=>clearTimeout(x)); }catch(e){}
+  lionTickerTimers = [];
+}
+function showLionTicker(text, holdMs=5000){
+  const t = document.getElementById("lionTicker");
+  if(!t) return;
+  hideLionTickerInstant();
+  t.textContent = text;
+  t.classList.remove("hidden","enter","hold","exit");
+  t.classList.add("enter");
+
+  const tIn = 430, tOut = 430;
+  lionTickerTimers.push(setTimeout(()=>{ t.classList.remove("enter"); t.classList.add("hold"); }, tIn));
+  lionTickerTimers.push(setTimeout(()=>{ t.classList.remove("hold"); t.classList.add("exit"); }, tIn + Math.max(0, holdMs)));
+  lionTickerTimers.push(setTimeout(()=>{ t.classList.add("hidden"); t.classList.remove("exit"); }, tIn + Math.max(0, holdMs) + tOut));
+}
+
+
+function playUniverseJackpot(durationMs=6500){
+  // Se era attiva la suspense (jackpot armato), ripristina tutto prima del JACKPOT
+  try{ disableArmedAudioMode(); }catch(e){}
+  const box = document.getElementById("jackpotUniverse");
+  const video = document.getElementById("universeVideo");
+  const audio = document.getElementById("universeAudio");
+
+  if(!box || !video || !audio) return;
+
+  // Pause any currently playing SFX to avoid overlaps
+  try{
+    [spinSound, winSmallSound, winMediumSound, jackpotSound, loseSound].forEach(s=>{
+      if(!s) return;
+      s.pause();
+      s.currentTime = 0;
+    });
+  }catch(e){}
+
+  // Duck background music while Universe plays
+  let hadMusic = false;
+  let prevVol = 0.25;
+  if (typeof bgMusic !== "undefined" && bgMusic && !bgMusic.paused){
+    hadMusic = true;
+    prevVol = bgMusic.volume;
+    bgMusic.volume = 0.05;
+  }
+
+  // Video muted: audio comes from MP3
+  video.muted = true;
+
+  try { video.currentTime = 0; } catch(e){}
+  try { audio.currentTime = 0; } catch(e){}
+
+  box.classList.remove("hidden");
+  box.classList.add("show");
+
+  // Try start video + audio (iOS may block one of them; we fallback)
+  const startVideo = () => { try{ return video.play().catch(()=>{}); }catch(e){} };
+  const startAudio = () => { try{ return audio.play().catch(()=>{}); }catch(e){} };
+
+  const ap = startAudio();
+  const vp = startVideo();
+
+  // iOS/Safari: sometimes first play() right after spin is blocked; retry shortly
+  setTimeout(() => { startVideo(); }, 120);
+  setTimeout(() => { startAudio(); }, 120);
+
+  // If MP3 is blocked, fallback to unmuting the video (if it contains audio)
+  Promise.resolve(ap).catch(()=>{}).then(()=>{}); // keep promise chain
+  setTimeout(() => {
+    try{
+      if (audio && audio.paused) {
+        // try again, and if still blocked, use video audio
+        audio.play().catch(()=>{
+          try{ video.muted = false; video.play().catch(()=>{}); }catch(e){}
+        });
+      }
+    }catch(e){}
+  }, 260);
+const stop = () => {
+    // Per Universe: lascia il frame finale in schermata (lampeggiante) finché non azzeri manualmente
+    try{ video.pause(); }catch(e){}
+    try{ audio.pause(); }catch(e){}
+    box.classList.remove("show");
+    box.classList.remove("hidden");
+    box.classList.add("hold");
+    if(hadMusic && typeof bgMusic !== "undefined" && bgMusic) bgMusic.volume = prevVol;
+  };
+
+  // stop on audio end OR after duration
+  audio.addEventListener("ended", stop, { once:true });
+  setTimeout(stop, durationMs);
+}
+
+function playLionJackpot(durationMs=5000){
+  const box = document.getElementById("jackpotLion");
+  const video = document.getElementById("lionVideo");
+  const ticker = document.getElementById("lionTicker");
+  if(!box || !video) return;
+  const lionAudio = document.getElementById("lionAudio");
+
+  // reset visual state
+  box.classList.remove("hidden","hold","show");
+  box.classList.add("show");
+
+  // ensure ticker hidden; shown separately via showVideoTicker()
+  if(ticker){ ticker.classList.add("hidden"); ticker.classList.remove("enter","hold","exit"); }
+
+  try{
+    video.currentTime = 0;
+    video.muted = true; // audio separato (leone.mp3)
+    if(lionAudio){ try{ lionAudio.pause(); lionAudio.currentTime = 0; }catch(e){}; playSfx(lionAudio); }
+    const p = video.play();
+    if(p && typeof p.catch==="function") p.catch(()=>{});
+  }catch(e){}
+
+  // Se termina prima, entra in HOLD frame finale lampeggiante
+  const toHold = ()=>{
+    try{ video.pause(); }catch(e){}
+    box.classList.remove("show");
+    box.classList.remove("hidden");
+    box.classList.add("hold");
+  };
+
+  const onEnded = ()=>{
+    video.removeEventListener("ended", onEnded);
+    toHold();
+  };
+  video.addEventListener("ended", onEnded, {once:true});
+
+  // fallback: dopo durationMs entra comunque in hold (se video lungo o browser limita)
+  setTimeout(()=>{ toHold(); }, Math.max(800, durationMs));
+}
+
+function hideLionInstant(){
+  const box = document.getElementById("jackpotLion");
+  const lionAudio = document.getElementById("lionAudio");
+  const video = document.getElementById("lionVideo");
+  const ticker = document.getElementById("lionTicker");
+  if(video){ try{ video.pause(); }catch(e){} }
+  if(ticker){ ticker.classList.add("hidden"); ticker.classList.remove("enter","hold","exit"); }
+  if(box){ box.classList.add("hidden"); box.classList.remove("show","hold"); }
+}
+
+
+
+function triggerProJackpotEffects(){
+  fxFlash();
+  spawnConfettiBurst(85);
+  proJackpotShake();
+  wheelJackpotGlow();
+  showJackpotBottom();
+  spawnFireworksBottom(5);
+  lockUIForJackpot(5000);
+}
+
+/* ELEMENTI GENERALI */
+const textRing = document.getElementById('textRing');
+const appRoot = document.getElementById('appRoot');
+
+const ledRing = document.getElementById('ledRing');
+(function createLedRing() {
+  if (!ledRing) return;
+  const count = 40;
+  for (let i = 0; i < count; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'led-dot';
+    const angle = (360 / count) * i;
+    dot.style.transform = 'rotate(' + angle + 'deg) translate(0,-50%)';
+    dot.style.animationDelay = (i * 0.05) + 's';
+    ledRing.appendChild(dot);
+  }
+})();
+
+/* AUDIO */
+const bgMusic = document.getElementById('bgMusic');
+const spinSound = document.getElementById('spinSound');
+const winSmallSound = document.getElementById('winSmallSound');
+const winMediumSound = document.getElementById('winMediumSound');
+const jackpotSound = document.getElementById('jackpotSound');
+const loseSound = document.getElementById('loseSound');
+const musicToggle = document.getElementById('musicToggle');
+
+let musicOn = false;
+let audioUnlocked = false;
+
+if (spinSound) spinSound.volume = 0.8;
+if (winSmallSound) winSmallSound.volume = 0.9;
+if (winMediumSound) winMediumSound.volume = 0.9;
+if (jackpotSound) jackpotSound.volume = 1.0;
+if (loseSound) loseSound.volume = 0.9;
+if (bgMusic) bgMusic.volume = 0.25;
+
+let bgPrevVolume = 0.25;
+let bgDucked = false;
+
+function stopAllEffectSounds() {
+  [winSmallSound, winMediumSound, jackpotSound, loseSound].forEach(s => {
+    if (!s) return;
+    s.pause();
+    s.currentTime = 0;
+  });
+}
+
+function playEffectWithDuck(sound) {
+  if (!sound) return;
+
+  stopAllEffectSounds();
+
+  let hadMusic = false;
+
+  if (bgMusic && !bgMusic.paused) {
+    hadMusic = true;
+    if (!bgDucked) {
+      bgPrevVolume = bgMusic.volume;
+    }
+    bgMusic.volume = 0.05;
+    bgDucked = true;
+  }
+
+  try {
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
+  } catch (e) {}
+
+  const restore = () => {
+    if (hadMusic && bgMusic) {
+      bgMusic.volume = bgPrevVolume;
+    }
+    bgDucked = false;
+    sound.removeEventListener("ended", restore);
+  };
+
+  sound.addEventListener("ended", restore);
+}
+
+async function setMusic(on) {
+  try {
+    if (on) {
+      bgMusic.muted = false;
+      await bgMusic.play();
+      musicOn = true;
+      musicToggle.textContent = "🔊 Musica di sottofondo: ON (tocca per OFF)";
+    } else {
+      bgMusic.pause();
+      musicOn = false;
+      musicToggle.textContent = "🔊 Musica di sottofondo: OFF (tocca per ON)";
+    }
+  } catch(e) {}
+}
+
+document.addEventListener("click", () => {
+  if (!audioUnlocked) {
+    [bgMusic, spinSound, winSmallSound, winMediumSound, jackpotSound, loseSound]
+      .forEach(a => { if (a) a.muted = false; });
+    
+    // UNLOCK Universe audio/video (mobile safe)
+    const ua = document.getElementById("universeAudio");
+    const uv = document.getElementById("universeVideo");
+
+    if (ua) {
+      ua.muted = false;
+      ua.volume = 1;
+      ua.play().then(() => {
+        ua.pause();
+        ua.currentTime = 0;
+      }).catch(() => {});
+    }
+
+    if (uv) {
+      uv.muted = true; // keep video muted, audio from MP3
+      uv.play().then(() => {
+        uv.pause();
+        uv.currentTime = 0;
+      }).catch(() => {});
+    }
+
+    audioUnlocked = true;
+  }
+}, { once: true });
+
+musicToggle.addEventListener("click", () => setMusic(!musicOn));
+
+/* ECONOMIA E LOGICA RUOTA */
+const TICKET_PRICE = 100;          // 100 monete = 1 GIRO BASE
+const TIKTOK_FEE_RATE = 0.50;      // TikTok trattiene ~50% (lavoriamo sul netto)
+const NET_PER_SPIN = TICKET_PRICE * (1 - TIKTOK_FEE_RATE);  // netto per 1 giro BASE (da 100)
+
+// Obiettivo: 40% PROFITTO fisso, 60% massimo in payout
+const PAYOUT_RATE  = 0.60;         // 60% restituito in premi (massimo)         // 80% restituito in premi (massimo)
+const PROFIT_RATE  = 0.40;         // 40% profitto target         // 20% profitto
+
+// Distribuzione del payout (sull'80%)
+const SMALL_POOL_RATE = 0.30;      // 30% premi piccoli (frequenti)
+const BIG_POOL_RATE   = 0.50;      // 50% premi grandi (meno frequenti)
+
+// Range premi richiesti
+const SMALL_MIN = 200,  SMALL_MAX = 5000;
+const BIG_MIN   = 5000, BIG_MAX   = 30000;
+
+// Jackpot
+const JACKPOT_VALUE = 45000;
+const JACKPOT_MIN_RECEIVED = 600000; // monete LORDO spese/ricevute (range)
+const JACKPOT_MAX_RECEIVED = 1000000;
+const JACKPOT_HARDCAP_RECEIVED = 1000000; // hard cap: entro 1.000.000 monete LORDO deve uscire
+const JACKPOT_TARGET_KEY = "sm_wheel_jackpot_target_received";
+// ===== Universe Jackpot Reserve (per garantire uscita entro 600k-1M rispettando profitto 40%) =====
+const UNIVERSE_JACKPOT_VALUE = 45000; // valore fisso TikTok Universe
+const UNIVERSE_RESERVE_KEY   = "sm_wheel_universe_jackpot_reserve";
+// quota del payoutBudget destinata a riserva jackpot durante il ciclo (15% del payoutBudget => 45k entro 600k-1M)
+const UNIVERSE_RESERVE_RATE_OF_PAYOUT = 0.15;
+
+
+// Universe Jackpot cycle: parte SOLO dopo un premio speciale, poi deve uscire entro 600k-1M dal punto di start
+const UNIVERSE_CYCLE_ACTIVE_KEY = "sm_wheel_universe_cycle_active";
+const UNIVERSE_CYCLE_START_KEY  = "sm_wheel_universe_cycle_start_gross";
+
+
+
+const UNIVERSE_LOCK_KEY = "sm_wheel_universe_locked";
+const POT_KEY = "sm_wheel_accum_pot";
+const SM_WHEEL_LOSE_STREAK_KEY = "sm_wheel_lose_streak";
+const SM_WHEEL_SINCE_BIG_KEY = "sm_wheel_since_big";
+
+let accumPot = parseInt(localStorage.getItem(POT_KEY) || "0", 10);
+if (isNaN(accumPot) || accumPot < 0) accumPot = 0;
+
+let universeJackpotReserve = parseInt(localStorage.getItem(UNIVERSE_RESERVE_KEY) || "0", 10);
+if (isNaN(universeJackpotReserve) || universeJackpotReserve < 0) universeJackpotReserve = 0;
+
+
+
+let loseStreak = parseInt(localStorage.getItem(SM_WHEEL_LOSE_STREAK_KEY) || "0", 10);
+let spinsSinceBig = parseInt(localStorage.getItem(SM_WHEEL_SINCE_BIG_KEY) || "0", 10);
+if (isNaN(loseStreak) || loseStreak < 0) loseStreak = 0;
+if (isNaN(spinsSinceBig) || spinsSinceBig < 0) spinsSinceBig = 0;
+/* ===== RICONOSCENZE (mini/medium/major) ===== */
+const RECON_CUT_RATE = 0.10; // 10% del PAYOUT (60%) = 6% del NETTO (post TikTok)
+const RECON_MAJOR_RATE = 0.50; // 5% su 10%
+const RECON_MEDIUM_RATE = 0.30; // 3% su 10%
+const RECON_MINOR_RATE = 0.20; // 2% su 10%
+
+const RECON_MINOR_MIN = 0,  RECON_MINOR_MAX = 50000; // HARD CAP richiesto
+const RECON_MEDIUM_MIN = 0, RECON_MEDIUM_MAX = 250000; // HARD CAP richiesto
+const RECON_MAJOR_MIN = 0,  RECON_MAJOR_MAX = 500000; // HARD CAP richiesto
+// ===== CICLO PREMI SPECIALI (priorità assoluta) =====
+// Ogni premio speciale attivo (toggle ON) deve uscire ENTRO 1.500.000 monete LORDO dal momento dell'attivazione.
+// Prima di 600.000 dal suo start non può uscire.
+const SPECIAL_MIN_GROSS = 600000;
+const SPECIAL_MAX_GROSS = 1500000; // hard cap
+const LS_RECON_MINOR_START  = "sm_recon_minor_start_gross";
+const LS_RECON_MEDIUM_START = "sm_recon_medium_start_gross";
+const LS_RECON_MAJOR_START  = "sm_recon_major_start_gross";
+const LS_RECON_MINOR_TARGET  = "sm_recon_minor_target_gross";
+const LS_RECON_MEDIUM_TARGET = "sm_recon_medium_target_gross";
+const LS_RECON_MAJOR_TARGET  = "sm_recon_major_target_gross";
+
+
+const POOL_MINOR_KEY = "sm_wheel_pool_minor";
+const POOL_MEDIUM_KEY = "sm_wheel_pool_medium";
+const POOL_MAJOR_KEY = "sm_wheel_pool_major";
+let poolMinor = parseInt(localStorage.getItem(POOL_MINOR_KEY) || "0", 10);
+let poolMedium = parseInt(localStorage.getItem(POOL_MEDIUM_KEY) || "0", 10);
+let poolMajor = parseInt(localStorage.getItem(POOL_MAJOR_KEY) || "0", 10);
+if (isNaN(poolMinor) || poolMinor < 0) poolMinor = 0;
+if (isNaN(poolMedium) || poolMedium < 0) poolMedium = 0;
+if (isNaN(poolMajor) || poolMajor < 0) poolMajor = 0;
+
+const MAIN_JACKPOT_HIT_KEY = "sm_wheel_main_jackpot_hit";
+let mainJackpotHit = (localStorage.getItem(MAIN_JACKPOT_HIT_KEY) === "1");
+
+
+
+const wheel = document.getElementById("wheel");
+const spinBtn = document.getElementById("spinBtn");
+const resetBtn = document.getElementById("resetBtn");
+
+const resetReconBtn = document.getElementById("resetReconBtn");
+
+/* RESET MANUALE PREMI SPECIALI (RICONOSCENZE) */
+if (resetReconBtn){
+  resetReconBtn.addEventListener("click", () => {
+    const sure = confirm("Vuoi azzerare SOLO i premi speciali (RICONOSCENZE)?");
+    if (!sure) return;
+
+    // azzera SOLO le pool riconoscenze
+    poolMinor = 0;
+    poolMedium = 0;
+    poolMajor = 0;
+    localStorage.setItem(POOL_MINOR_KEY, "0");
+    localStorage.setItem(POOL_MEDIUM_KEY, "0");
+    localStorage.setItem(POOL_MAJOR_KEY, "0");
+
+    // aggiorna UI
+    if (typeof updateStatsBox === "function") updateStatsBox();
+
+    alert("✅ Premi speciali azzerati correttamente");
+  });
+}
+
+const resultBox = document.getElementById("resultBox");
+const prizeOverlay = document.getElementById("prize-overlay");
+const statSpins = document.getElementById("statSpins");
+const statSpinCount = document.getElementById("statSpinCount");
+const statPrizes = document.getElementById("statPrizes");
+const statNet = document.getElementById("statNet");
+const statProfit = document.getElementById("statProfit");
+
+const reconMinorEl = document.getElementById("reconMinor");
+const reconMediumEl = document.getElementById("reconMedium");
+const reconMajorEl = document.getElementById("reconMajor");
+
+
+const multiSpinsInput = document.getElementById("multiSpinsInput");
+const multiStatus = document.getElementById("multiStatus");
+const spinCostSelector = document.getElementById("spinCostSelector");
+/* ===== NO GAMBLING: testo fisso sulla circonferenza LED ===== */
+function setupNoGamblingRing(){
+  const el = document.getElementById("textRing");
+  if(!el) return;
+  // SVG con testo su percorso circolare: rimane FISSO, sopra al LED, senza intercettare click
+  el.innerHTML = `
+    <svg viewBox="0 0 200 200" width="100%" height="100%" aria-hidden="true" style="display:block;">
+      <defs>
+        <!-- r=94: praticamente sul bordo esterno (coerente con inset -6px del ring) -->
+        <path id="nogamblingPath" d="M 100,100 m -94,0 a 94,94 0 1,1 188,0 a 94,94 0 1,1 -188,0"/>
+      </defs>
+      <text fill="#ef4444" font-size="13" font-weight="900" letter-spacing="2.6" style="text-transform:uppercase;">
+        <textPath href="#nogamblingPath" startOffset="50%" text-anchor="middle">
+          NO GAMBLING • NO GAMBLING • NO GAMBLING • NO GAMBLING •
+        </textPath>
+      </text>
+    </svg>
+  `;
+}
+
+
+/* Nick & Classifica */
+const nickInput = document.getElementById("nickInput");
+const saveNickBtn = document.getElementById("saveNickBtn");
+const currentNickLabel = document.getElementById("currentNick");
+const leaderboardTop3El = document.getElementById("leaderboardTop3");
+const leaderboardAllEl = document.getElementById("leaderboardAll");
+const leaderboardAllWrap = document.getElementById("leaderboardAllWrap");
+const lbToggleBtn = document.getElementById("lbToggleBtn");
+const donorSelect = document.getElementById("donorSelect");
+
+let isSpinning = false;
+let currentRotation = 0;
+
+let totalSpins = 0;
+let totalNet = 0;
+let totalReceivedNet = 0; // netto post-TikTok accumulato
+let totalPrizeCost = 0;
+let jackpotCount = 0;
+
+let totalSmallPaid = 0;
+let totalBigPaid = 0;
+let jackpotTargetSpin = null;
+
+
+// Universe jackpot cycle state
+let universeCycleActive = (localStorage.getItem(UNIVERSE_CYCLE_ACTIVE_KEY) === "1");
+let universeCycleStartGross = parseInt(localStorage.getItem(UNIVERSE_CYCLE_START_KEY) || "0", 10);
+if (isNaN(universeCycleStartGross) || universeCycleStartGross < 0) universeCycleStartGross = 0;
+
+// ✅ GARANZIA: il Jackpot TikTok Universe deve SEMPRE avere un ciclo attivo
+// In passato il ciclo partiva solo dopo una riconoscenza; con gli interruttori ON/OFF
+// poteva capitare che nessuna riconoscenza uscisse e quindi il Jackpot Universe non partisse mai.
+// Ora: se non c'è un ciclo attivo, lo facciamo partire automaticamente dall'attuale totale LORDO (totalNet)
+// così l'uscita resta forzata nel range 600.000 → 1.000.000 (relativo allo start del ciclo).
+function ensureUniverseCycleBaseline(){
+  try{
+    if (!universeCycleActive){
+      // totalNet viene caricato da loadStats() più avanti; se qui è 0 non è un problema,
+      // verrà riallineato subito dopo loadStats.
+      universeCycleActive = true;
+      universeCycleStartGross = (typeof totalNet === "number" && totalNet > 0) ? totalNet : universeCycleStartGross;
+
+      localStorage.setItem(UNIVERSE_CYCLE_ACTIVE_KEY, "1");
+      localStorage.setItem(UNIVERSE_CYCLE_START_KEY, String(universeCycleStartGross));
+
+      // reset target: verrà rigenerato nel primo spin utile
+      jackpotTargetSpin = null;
+      localStorage.removeItem(JACKPOT_TARGET_KEY);
+    }
+  }catch(e){}
+}
+let currentNick = "";
+const LEADERBOARD_KEY = "sm_wheel_leaderboard";
+
+let multiSpinsRemaining = 0;
+let multiSpinsTotal = 0;
+
+let gameLocked = false;
+
+if (lbToggleBtn && leaderboardAllWrap){
+  lbToggleBtn.addEventListener("click", ()=>{
+    leaderboardAllWrap.classList.toggle("hidden");
+    lbToggleBtn.textContent = leaderboardAllWrap.classList.contains("hidden")
+      ? "📜 Vedi tutti i donatori"
+      : "❌ Chiudi elenco donatori";
+  });
+}
+
+
+
+if (donorSelect){
+  donorSelect.addEventListener("change", ()=>{
+    const v = (donorSelect.value || "").trim();
+    if(!v) return;
+    // set nick quickly
+    currentNick = v;
+    if (nickInput) nickInput.value = v;
+    refreshNickLabel();
+    localStorage.setItem("sm_wheel_nick", currentNick);
+  });
+}
+function formatNumber(n){ return n.toLocaleString("it-IT"); }
+function escapeHtml(str){
+  return String(str || "").replace(/[&<>"']/g, (c)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+
+
+/* ===== PROFIT GUARD =====
+   Regole:
+   - TikTok trattiene 50% (lavoriamo sul NETTO)
+   - Sul NETTO: 60% payout massimo, 40% profitto target
+   - Jackpot e Premi Speciali si pagano SOLO se:
+       * profitto attuale >= 40% del NETTO
+       * e dopo il pagamento resta almeno 40% del NETTO (soglia minima)
+*/
+function getProfitNet(){
+  return totalReceivedNet - totalPrizeCost;
+}
+function getProfitMargin(){
+  return totalReceivedNet > 0 ? (getProfitNet() / totalReceivedNet) : 0;
+}
+function canPayKeepingMinMargin(extraPayout){
+  // Vincolo: dopo il pagamento dobbiamo restare almeno al PROFIT_RATE (40%)
+  const afterProfit = getProfitNet() - extraPayout;
+  return totalReceivedNet > 0 ? ((afterProfit / totalReceivedNet) >= PROFIT_RATE) : true;
+}
+function canTriggerSpecialOrJackpot(extraPayout){
+  // Premi speciali e Jackpot: permessi SOLO se siamo già >= 40% e restiamo >= 40% dopo il pagamento
+  return getProfitMargin() >= PROFIT_RATE && canPayKeepingMinMargin(extraPayout);
+}
+
+
+
+
+function canTriggerForced(extraPayout){
+  // Evento arrivato al CAP: in questa versione il CAP NON bypassa il profit-guard.
+  // Deve restare comunque >= 40% dopo il pagamento.
+  return canPayKeepingMinMargin(extraPayout);
+}
+
+function saveStats(){
+  const data = { totalSpins, totalNet, totalReceivedNet, totalPrizeCost, jackpotCount, totalSmallPaid, totalBigPaid, jackpotTargetSpin };
+  localStorage.setItem("sm_wheel_stats_simple", JSON.stringify(data));
+}
+function loadStats(){
+  try{
+    const raw = localStorage.getItem("sm_wheel_stats_simple");
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    totalSpins = d.totalSpins || 0;
+    totalNet = d.totalNet || 0;
+    totalReceivedNet = d.totalReceivedNet || 0;
+    totalPrizeCost = d.totalPrizeCost || 0;
+    jackpotCount = d.jackpotCount || 0;
+    totalSmallPaid = d.totalSmallPaid || 0;
+    totalBigPaid = d.totalBigPaid || 0;
+    jackpotTargetSpin = (typeof d.jackpotTargetSpin === 'number') ? d.jackpotTargetSpin : null;
+  }catch(e){}
+}
+function updateStatsBox(){
+  // Monete spese: somma della puntata selezionata ad ogni spin (LORDO)
+  statSpins.textContent = formatNumber(Math.round(totalNet));
+  if (statSpinCount) statSpinCount.textContent = totalSpins;
+  statPrizes.textContent = formatNumber(Math.round(totalPrizeCost));
+  // Pool riconoscenze
+  if (reconMinorEl) reconMinorEl.textContent = formatNumber(Math.round(poolMinor));
+  if (reconMediumEl) reconMediumEl.textContent = formatNumber(Math.round(poolMedium));
+  if (reconMajorEl) reconMajorEl.textContent = formatNumber(Math.round(poolMajor));
+  saveStats();
+}
+
+/* Nick */
+function refreshNickLabel() {
+  if (currentNick && currentNick.trim() !== "") {
+    currentNickLabel.textContent = "Nick attivo: " + currentNick;
+  } else {
+    currentNickLabel.textContent = "Nessun Nick selezionato.";
+  }
+}
+function loadNick() {
+  const stored = localStorage.getItem("sm_wheel_nick") || "";
+  currentNick = stored;
+  if (nickInput) nickInput.value = stored;
+  refreshNickLabel();
+}
+function saveNick() {
+  const value = nickInput.value.trim();
+  if (!value) {
+    alert("Inserisci un Nick valido.");
+    return;
+  }
+  currentNick = value;
+  localStorage.setItem("sm_wheel_nick", currentNick);
+  refreshNickLabel();
+}
+if (saveNickBtn) {
+  saveNickBtn.addEventListener("click", saveNick);
+}
+
+// Auto-salvataggio nick (ENTER o uscita dal campo)
+if (nickInput){
+  nickInput.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      e.preventDefault();
+      // salva e chiudi tastiera (mobile)
+      nickInput.blur();
+      try{ saveNick(); }catch(_){}
+    }
+  });
+  nickInput.addEventListener("blur", ()=>{
+    const v = (nickInput.value || "").trim();
+    if(v){
+      currentNick = v;
+      localStorage.setItem("sm_wheel_nick", currentNick);
+      refreshNickLabel();
+    }
+  });
+}
+
+/* Classifica */
+function loadLeaderboard() {
+  try {
+    const raw = localStorage.getItem(LEADERBOARD_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr;
+  } catch(e) {
+    return [];
+  }
+}
+function saveLeaderboard(lb) {
+  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(lb));
+}
+function renderLeaderboard() {
+  const lb = loadLeaderboard();
+  lb.sort((a,b) => b.totalPrize - a.totalPrize);
+
+  // TOP 3
+  if (leaderboardTop3El){
+    if (lb.length === 0) {
+      leaderboardTop3El.innerHTML = "<li>Nessun benefattore registrato per ora.</li>";
+    } else {
+      const top3 = lb.slice(0, 3);
+      leaderboardTop3El.innerHTML = top3.map((e, idx) => `
+        <li>
+          <strong>#${idx+1} ${e.nick}</strong> — ${formatNumber(e.totalPrize)} monete
+          (giri premiati: ${e.spins}${e.jackpots > 0 ? `, jackpot: ${e.jackpots}` : ""})
+        </li>
+      `).join("");
+    }
+  }
+
+  // FULL LIST (scroll)
+  if (leaderboardAllEl){
+    if (lb.length === 0){
+      leaderboardAllEl.innerHTML = "<li>Nessun benefattore registrato per ora.</li>";
+    } else {
+      leaderboardAllEl.innerHTML = lb.map((e, idx) => `
+        <li>
+          <strong>#${idx+1} ${e.nick}</strong> — ${formatNumber(e.totalPrize)} monete
+          (giri premiati: ${e.spins}${e.jackpots > 0 ? `, jackpot: ${e.jackpots}` : ""})
+        </li>
+      `).join("");
+    }
+  }
+
+  // SELECT (choose donor)
+  if (donorSelect){
+    const current = donorSelect.value || "";
+    const options = ['<option value="">Seleziona un donatore…</option>']
+      .concat(lb.map(e => `<option value="${escapeHtml(e.nick)}">${escapeHtml(e.nick)} — ${formatNumber(e.totalPrize)} monete</option>`));
+    donorSelect.innerHTML = options.join("");
+    if (current) donorSelect.value = current;
+  }
+}
+function updateLeaderboard(nick, prizeAmount, isJackpot) {
+  if (!nick || !nick.trim()) return;
+  if (prizeAmount <= 0) {
+    renderLeaderboard();
+setupNoGamblingRing();
+updateStatsBox();
+    return;
+  }
+  const lb = loadLeaderboard();
+  let entry = lb.find(e => e.nick === nick);
+  if (!entry) {
+    entry = { nick, totalPrize: 0, spins: 0, jackpots: 0 };
+    lb.push(entry);
+  }
+  entry.totalPrize += prizeAmount;
+  entry.spins += 1;
+  if (isJackpot) entry.jackpots += 1;
+  saveLeaderboard(lb);
+  renderLeaderboard();
+setupNoGamblingRing();
+updateStatsBox();
+}
+
+/* Popup "Giro X di Y" */
+function updateMultiStatusDisplay(currentNumber) {
+  if (!multiStatus) return;
+  if (multiSpinsTotal > 1 && multiSpinsRemaining > 0) {
+    if (currentNumber > 0) {
+      multiStatus.textContent = `Giro ${currentNumber} di ${multiSpinsTotal}`;
+    }
+    multiStatus.classList.remove("hidden");
+  } else {
+    multiStatus.classList.add("hidden");
+  }
+}
+
+/* Monete per giro -> PUNTATA (monete) per 1 SPIN */
+function getBetPerSpin() {
+  const val = parseInt(spinCostSelector.value, 10);
+  const allowed = [100,250,500,1000,5000,10000,25000];
+  if (!allowed.includes(val)) return 100;
+  return val;
+}
+
+/* Helper random e premi */
+function randomInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+const prizeDefs = {
+  JACKPOT: { name: "JACKPOT",      label: "💥 JACKPOT 45.000 monete", amount: 45000 },
+  P2500:   { name: "PREMIO_TOP",   label: "🎁 Premio top 2.500 monete", amount: 2500 },
+  P1000:   { name: "PREMIO_ALTO",  label: "🎁 Premio alto 1.000 monete", amount: 1000 },
+  P500:    { name: "PREMIO_MEDIO", label: "🎁 Premio medio 500 monete",   amount: 500 },
+  P250:    { name: "PREMIO_BASSO", label: "🎁 Premio basso 250 monete",   amount: 250 },
+  P100:    { name: "PREMIO_MINI",  label: "🎁 Premio mini 100 monete",    amount: 100 },
+  NO_WIN:  { name: "NESSUN_PREMIO",label: "❌ Nessun premio",             amount: 0 }
+};
+
+const segmentRanges = [
+  { segmentIndex: 2, prizeKey: "P100",  rangeStart:   2, rangeEnd: 201 },
+  { segmentIndex: 5, prizeKey: "P250",  rangeStart: 202, rangeEnd: 211 },
+  { segmentIndex: 3, prizeKey: "P500",  rangeStart: 212, rangeEnd: 215 },
+  { segmentIndex: 1, prizeKey: "P1000", rangeStart: 216, rangeEnd: 216 },
+  { segmentIndex: 6, prizeKey: "P2500", rangeStart: 217, rangeEnd: 217 },
+  { segmentIndex: 0, prizeKey: "NO_WIN", rangeStart:   1, rangeEnd:   1 },
+  { segmentIndex: 4, prizeKey: "NO_WIN", rangeStart: 218, rangeEnd: 1000 }
+];
+
+/* Un singolo SPIN (puntata variabile) con accumulo */
+function pickPrizeByRandom() {
+  const bet = getBetPerSpin();              // 100 / 250 / 500 / 1000 / 5000 / 10000 / 25000
+  const capMax = bet * 25;                  // es: 100 -> 2500 (come richiesto)
+
+  // Incasso netto dopo TikTok. Su questo imponiamo: 60% payout / 40% profitto
+  const netBet = Math.floor(bet * (1 - TIKTOK_FEE_RATE));
+  totalReceivedNet += netBet;
+
+  // Budget payout (80% del NETTO). Da questo detraiamo il 10% per le RICONOSCENZE (5/3/2).
+  let payoutBudget = Math.floor(netBet * PAYOUT_RATE);
+
+  // ===== Riserva JACKPOT UNIVERSE (garantisce uscita entro 600k-1M rispettando profitto 40%) =====
+  // La riserva viene presa dal payoutBudget, quindi NON intacca il PROFITTO (40% del NETTO).
+  if (universeCycleActive && !gameLocked && universeJackpotReserve < UNIVERSE_JACKPOT_VALUE){
+    const need = UNIVERSE_JACKPOT_VALUE - universeJackpotReserve;
+    const add = Math.min(need, Math.floor(payoutBudget * UNIVERSE_RESERVE_RATE_OF_PAYOUT));
+    if (add > 0){
+      universeJackpotReserve += add;
+      payoutBudget -= add;
+      try{ localStorage.setItem(UNIVERSE_RESERVE_KEY, String(universeJackpotReserve)); }catch(e){}
+    }
+  }
+  const reconCut = Math.floor(payoutBudget * RECON_CUT_RATE);
+
+  const addMajor = Math.floor(reconCut * RECON_MAJOR_RATE);
+  const addMedium = Math.floor(reconCut * RECON_MEDIUM_RATE);
+  const addMinor = Math.max(0, reconCut - addMajor - addMedium);
+
+  poolMajor += addMajor;
+  poolMedium += addMedium;
+  poolMinor += addMinor;
+  
+  // ===== CLAMP POOL RICONOSCENZE (NON POSSONO SUPERARE IL CAP) =====
+  if (poolMinor > RECON_MINOR_MAX) poolMinor = RECON_MINOR_MAX;
+  if (poolMedium > RECON_MEDIUM_MAX) poolMedium = RECON_MEDIUM_MAX;
+  if (poolMajor > RECON_MAJOR_MAX) poolMajor = RECON_MAJOR_MAX;
+
+  localStorage.setItem(POOL_MAJOR_KEY, String(poolMajor));
+  localStorage.setItem(POOL_MEDIUM_KEY, String(poolMedium));
+  localStorage.setItem(POOL_MINOR_KEY, String(poolMinor));
+
+
+  // Il resto va nel montepremi/accumulo della ruota
+  accumPot += (payoutBudget - reconCut);
+  localStorage.setItem(POT_KEY, String(accumPot));
+
+
+  // init/restore jackpot target (ciclo Universe): SOLO se è attivo un ciclo (parte dopo un premio speciale)
+  if (!universeCycleActive) {
+    jackpotTargetSpin = null;
+    localStorage.removeItem(JACKPOT_TARGET_KEY);
+  } else if (jackpotTargetSpin === null) {
+    const stored = parseInt(localStorage.getItem(JACKPOT_TARGET_KEY) || "", 10);
+    const minAbs = universeCycleStartGross + JACKPOT_MIN_RECEIVED;
+    const maxAbs = universeCycleStartGross + JACKPOT_MAX_RECEIVED;
+    if (!isNaN(stored) && stored >= minAbs && stored <= maxAbs) {
+      jackpotTargetSpin = stored;
+    } else {
+      const range = JACKPOT_MAX_RECEIVED - JACKPOT_MIN_RECEIVED;
+      jackpotTargetSpin = minAbs + Math.floor(Math.random() * (range + 1));
+      localStorage.setItem(JACKPOT_TARGET_KEY, String(jackpotTargetSpin));
+    }
+  }
+
+  // Helper segment coerente con 8 spicchi
+  function pickSegmentIndexForAmount(amount, kind) {
+    if (kind === "JACKPOT") return 7;
+    if (String(kind).startsWith("RECON_")) return 6;
+    if (amount <= 0) return (Math.random() < 0.5 ? 0 : 4); // NO WIN
+    if (kind === "BIG") return 6;
+    if (amount < bet * 2) return 5;
+    if (amount < bet * 6) return 3;
+    if (amount < bet * 12) return 1;
+    return 6;
+  }
+
+  // 1) JACKPOT UNIVERSE controllato: deve uscire SEMPRE tra start+600k e start+1.000.000
+  const nextGrossReceived = totalNet + bet; // totale LORDO dopo questo spin
+  const minAbs = universeCycleStartGross + JACKPOT_MIN_RECEIVED;
+  const hardcapAbs = universeCycleStartGross + JACKPOT_HARDCAP_RECEIVED;
+
+  // È "dovuto" se siamo nel range (>=600k) e raggiungiamo target, oppure se tocchiamo/superiamo il CAP.
+  const jackpotHardcapDue = (universeCycleActive && !gameLocked && (nextGrossReceived >= hardcapAbs));
+  const jackpotTargetDue  = (universeCycleActive && !gameLocked && (nextGrossReceived >= minAbs) &&
+                             (jackpotTargetSpin !== null && nextGrossReceived >= jackpotTargetSpin));
+  const jackpotDue = jackpotHardcapDue || jackpotTargetDue;
+
+  if (jackpotDue) {
+    // Garantiamo pagamento 45.000 mantenendo PROFITTO 40%:
+    // la riserva è accumulata dentro al payoutBudget, quindi non intacca il margine.
+    if (universeJackpotReserve < UNIVERSE_JACKPOT_VALUE){
+      // Safety: prova a colmare dalla pot normale (sempre payout), senza toccare il profitto
+      const need = UNIVERSE_JACKPOT_VALUE - universeJackpotReserve;
+      const move = Math.min(need, Math.max(0, accumPot));
+      if (move > 0){
+        accumPot -= move;
+        universeJackpotReserve += move;
+        try{ localStorage.setItem(POT_KEY, String(accumPot)); }catch(e){}
+        try{ localStorage.setItem(UNIVERSE_RESERVE_KEY, String(universeJackpotReserve)); }catch(e){}
+      }
+    }
+
+    // Pagamento jackpot fisso
+    const jackpotTotal = UNIVERSE_JACKPOT_VALUE;
+
+    // Deduzione dalla riserva
+    universeJackpotReserve = Math.max(0, universeJackpotReserve - jackpotTotal);
+    try{ localStorage.setItem(UNIVERSE_RESERVE_KEY, String(universeJackpotReserve)); }catch(e){}
+
+    totalSpins += 1;
+    totalNet += bet;                // incasso LORDO (monete spese)
+    totalPrizeCost += jackpotTotal;
+    jackpotCount += 1;
+
+    // blocca il gioco finché non fai "Azzera sessione"
+    gameLocked = true;
+    try{ localStorage.setItem(UNIVERSE_LOCK_KEY, "1"); }catch(e){}
+    if (appRoot) { appRoot.classList.add("jackpot-locked"); appRoot.classList.add("lock-all"); }
+    if (spinBtn) spinBtn.disabled = true;
+    // stop immediato di eventuali auto-spin
+    try{
+      if (typeof multiSpinsRemaining !== "undefined") multiSpinsRemaining = 0;
+      if (typeof multiSpinsTotal !== "undefined") multiSpinsTotal = 0;
+      if (typeof updateMultiStatusDisplay === "function") updateMultiStatusDisplay(0);
+    }catch(e){}
+
+    // blocco totale UI (tranne AZZERA)
+    if (appRoot) appRoot.classList.add("lock-all");
+
+    // termina ciclo (riparte SOLO quando sblocchi manualmente)
+    endUniverseCycle();
+
+    // pulizia target (verrà rigenerato allo sblocco)
+    try{ localStorage.removeItem(JACKPOT_TARGET_KEY); }catch(e){}
+    jackpotTargetSpin = null;
+
+    updateStatsBox();
+
+    return {
+      rnd: 1,
+      def: { name: "JACKPOT", label: `💥 JACKPOT TIKTOK UNIVERSE ${formatNumber(UNIVERSE_JACKPOT_VALUE)} monete`, amount: UNIVERSE_JACKPOT_VALUE },
+      prizeCost: jackpotTotal,
+      segmentIndex: 7,
+      isJackpot: true,
+      bet
+    };
+  }
+
+/* 1b) RICONOSCENZE: premi speciali che crescono automaticamente (sempre attive). Quando esce una riconoscenza, PARTE un nuovo ciclo Jackpot Universe */
+  
+  function maybeTriggerRecognition(){
+    const majorOn  = !!(masterMajor  && masterMajor.checked);
+    const mediumOn = !!(masterMedium && masterMedium.checked);
+    const minorOn  = !!(masterMinor  && masterMinor.checked);
+
+    function dueForTier(on, startKey, targetKey){
+      if(!on) return false;
+      let start = parseInt(localStorage.getItem(startKey) || "", 10);
+      let target = parseInt(localStorage.getItem(targetKey) || "", 10);
+
+      if (isNaN(start) || start < 0){
+        start = Math.round(totalNet || 0);
+        try{ localStorage.setItem(startKey, String(start)); }catch(e){}
+      }
+      if (isNaN(target) || target <= start){
+        target = start + SPECIAL_MIN_GROSS + Math.floor(Math.random() * ((SPECIAL_MAX_GROSS - SPECIAL_MIN_GROSS) + 1));
+        try{ localStorage.setItem(targetKey, String(target)); }catch(e){}
+      }
+
+      const minAbs = start + SPECIAL_MIN_GROSS;
+      const capAbs = start + SPECIAL_MAX_GROSS;
+
+      if (nextGrossReceived >= capAbs) return true;
+      if (nextGrossReceived >= minAbs && nextGrossReceived >= target) return true;
+      return false;
+    }
+
+    // Priorità: MAJOR -> MEDIUM -> MINOR
+    if (majorOn && dueForTier(true, LS_RECON_MAJOR_START, LS_RECON_MAJOR_TARGET)) {
+      const amount = poolMajor;
+      if (amount <= 0) return null;
+      if (!canTriggerForced(amount)) return null;
+      poolMajor = 0;
+      localStorage.setItem(POOL_MAJOR_KEY, "0");
+      try{ localStorage.removeItem(LS_RECON_MAJOR_START); localStorage.removeItem(LS_RECON_MAJOR_TARGET); }catch(e){}
+      return { tier:"MAJOR", amount };
+    }
+
+    if (mediumOn && dueForTier(true, LS_RECON_MEDIUM_START, LS_RECON_MEDIUM_TARGET)) {
+      const amount = poolMedium;
+      if (amount <= 0) return null;
+      if (!canTriggerForced(amount)) return null;
+      poolMedium = 0;
+      localStorage.setItem(POOL_MEDIUM_KEY, "0");
+      try{ localStorage.removeItem(LS_RECON_MEDIUM_START); localStorage.removeItem(LS_RECON_MEDIUM_TARGET); }catch(e){}
+      return { tier:"MEDIUM", amount };
+    }
+
+    if (minorOn && dueForTier(true, LS_RECON_MINOR_START, LS_RECON_MINOR_TARGET)) {
+      const amount = poolMinor;
+      if (amount <= 0) return null;
+      if (!canTriggerForced(amount)) return null;
+      poolMinor = 0;
+      localStorage.setItem(POOL_MINOR_KEY, "0");
+      try{ localStorage.removeItem(LS_RECON_MINOR_START); localStorage.removeItem(LS_RECON_MINOR_TARGET); }catch(e){}
+      return { tier:"MINI", amount };
+    }
+
+    return null;
+  }
+
+const recognitionHit = maybeTriggerRecognition();
+  // Se scatta una riconoscenza: mostra banner stile Universe, riparte il ciclo Jackpot Universe (da questo momento può uscire nel range 600k-1M)
+  if (recognitionHit) {
+    try { if (typeof disableArmedAudioMode === "function") disableArmedAudioMode(); } catch(e){}
+    // Premi speciali: SOLO animazione LEONE + ticker (niente Universe audio/video)
+    lockForSpecialPrize(recognitionHit.tier, recognitionHit.amount);
+
+    // AUTO-OFF del toggle relativo (devi riattivarlo tu manualmente)
+    try{
+      if (recognitionHit.tier === "MAJOR" && masterMajor){ masterMajor.checked = false; lsSetBool(LS_RECON_MAJOR, false); }
+      if (recognitionHit.tier === "MEDIUM" && masterMedium){ masterMedium.checked = false; lsSetBool(LS_RECON_MEDIUM, false); }
+      if (recognitionHit.tier === "MINI" && masterMinor){ masterMinor.checked = false; lsSetBool(LS_RECON_MINOR, false); }
+      if (typeof updateReconLockUI === "function") updateReconLockUI();
+    }catch(e){}
+
+    // Universe resta in pausa finché esiste almeno un premio speciale ON.
+    // Quando l'ULTIMO premio speciale è uscito (quindi tutti OFF), riparte DA ZERO il ciclo Universe da questo momento.
+    try{
+      if (!specialsAnyOn()){
+        universePausedBySpecial = false;
+        _lastSpecialAnyOn = false;
+        startNewUniverseCycle(nextGrossReceived);
+      } else {
+        universePausedBySpecial = true;
+        _lastSpecialAnyOn = true;
+        universeCycleActive = false;
+        try{ localStorage.setItem(UNIVERSE_CYCLE_ACTIVE_KEY, "0"); }catch(e){}
+        try{ localStorage.removeItem(JACKPOT_TARGET_KEY); }catch(e){}
+        jackpotTargetSpin = null;
+      }
+    }catch(e){}
+  }
+
+
+
+// 2) Logica accumulo: MOLTI giri a vuoto + premio grande ogni tanto (random, non prevedibile)
+/*
+  Obiettivo:
+  - tanti NO WIN su TUTTE le puntate
+  - premio grande "a sorpresa" quando c'è accumulo e il profit-guard lo consente
+  - randomness + anti-pattern (non deve essere leggibile come schema fisso)
+*/
+  // Probabilità base (jitterate ad ogni spin)
+  // Base: ~70-78% vuoto, ~18-25% piccolo, ~3-8% grande (varia ad ogni giro)
+  let pNoWin = 0.82 + (Math.random() * 0.06);      // 0.82 - 0.88 (meno giri vincenti)
+  let pBig   = 0.02 + (Math.random() * 0.02);      // 0.02 - 0.04
+  let pSmall = 1 - pNoWin - pBig;                  // resto
+
+  // Influenza "streak": più giri a vuoto consecutivi => aumenta leggermente chance premio piccolo/grande (sempre random)
+  const streakBoost = Math.min(0.10, loseStreak * 0.0025); // max +10%
+  pNoWin = Math.max(0.68, pNoWin - streakBoost);
+  pSmall = Math.min(0.28, pSmall + streakBoost * 0.75);
+  pBig   = Math.min(0.06, pBig   + streakBoost * 0.25);
+
+  // Cooldown soft: se è uscito un BIG da poco, riduci pBig per qualche giro (ma non a zero)
+  const cooldown = Math.min(0.06, Math.max(0, (18 - spinsSinceBig) * 0.003)); // fino a -6% se BIG è "troppo recente"
+  pBig = Math.max(0.01, pBig - cooldown);
+  // ribilancia (mantieni somma ~1)
+  const sum = pNoWin + pSmall + pBig;
+  pNoWin /= sum; pSmall /= sum; pBig /= sum;
+
+  // Condizioni minime per provare BIG: serve accumulo sufficiente e profit guard ok (verifica dopo)
+  const bigMinNeed = Math.min(Math.floor(bet * 5), capMax);
+
+  const r = Math.random();
+  let kind = "NO_WIN";
+  if (r < pBig) kind = "BIG";
+  else if (r < (pBig + pSmall)) kind = "SMALL";
+
+
+  // Range dinamici in base alla puntata
+  const smallMin = Math.max(1, Math.floor(bet * 1));
+  const smallMax = Math.min(Math.floor(bet * 8), capMax);     // vincite "importanti"
+  const bigMin   = Math.min(Math.floor(bet * 8), capMax);     // big da 8x in su
+  const bigMax   = capMax;                                    // fino a 25x                                    // es: 100 -> 2500
+
+  let prize = 0;
+
+  if (kind === "SMALL") {
+    // premio (più raro ma più alto): non deve superare l'accumulo
+    const want = randomInt(smallMin, smallMax);
+    prize = Math.min(want, accumPot);
+    if (prize <= 0) {
+      kind = "NO_WIN";
+      prize = 0;
+    }
+  } else if (kind === "BIG") {
+    // premio grande: alto ma NON sempre tutto il pot (random), max 25x puntata
+    const available = Math.min(accumPot, bigMax);
+    if (available < bigMin) {
+      kind = "NO_WIN";
+      prize = 0;
+    } else {
+      prize = randomInt(bigMin, available);
+    }
+  }
+
+  // Se è scattata una RICONOSCENZA, la aggiungiamo al premio di questo giro (pagata SOLO dalla pool riconoscenze)
+  const baseKind = kind;
+  const basePrize = prize;
+  let reconBonus = 0;
+
+  if (recognitionHit && recognitionHit.amount > 0) {
+    reconBonus = recognitionHit.amount;
+    kind = "RECON_" + recognitionHit.tier;
+  }
+
+  const prizeTotal = basePrize + reconBonus;
+
+  
+
+  // ===== STREAK TRACKING (anti-pattern) =====
+  if (basePrize <= 0 && reconBonus <= 0) {
+    loseStreak += 1;
+  } else {
+    loseStreak = 0;
+  }
+  if (baseKind === "BIG" && basePrize > 0) {
+    spinsSinceBig = 0;
+  } else {
+    spinsSinceBig += 1;
+  }
+  localStorage.setItem(SM_WHEEL_LOSE_STREAK_KEY, String(loseStreak));
+  localStorage.setItem(SM_WHEEL_SINCE_BIG_KEY, String(spinsSinceBig));
+// commit contatori e pot
+  totalSpins += 1;
+  totalNet += bet;
+
+  if (prizeTotal > 0) {
+    // contabilità: sommiamo TUTTO ciò che è stato pagato (premio normale + riconoscenza)
+    totalPrizeCost += prizeTotal;
+
+    // il premio "normale" viene pagato dall'accumPot
+    if (basePrize > 0) {
+      accumPot -= basePrize;
+      localStorage.setItem(POT_KEY, String(accumPot));
+      if (baseKind === "BIG") totalBigPaid += basePrize; else totalSmallPaid += basePrize;
+    }
+    // la riconoscenza (reconBonus) è già stata scalata dalla sua pool in maybeTriggerRecognition()
+  }
+updateStatsBox();
+
+  return {
+    rnd: randomInt(2, 1000),
+    def: { name: (
+              kind==="BIG"?"PREMIO_GRANDE":
+              kind==="SMALL"?"PREMIO_PICCOLO":
+              kind==="RECON_MAJOR"?"RICONOSCENZA_MAJOR":
+              kind==="RECON_MEDIUM"?"RICONOSCENZA_MEDIUM":
+              kind==="RECON_MINI"?"RICONOSCENZA_MINI":
+              "NESSUN_PREMIO"
+            ),
+           label: (
+              kind==="RECON_MAJOR"?`👑✨ RICONOSCENZA MAJOR! +${formatNumber(recognitionHit.amount)} monete`:
+              kind==="RECON_MEDIUM"?`🏆🔥 RICONOSCENZA MEDIUM! +${formatNumber(recognitionHit.amount)} monete`:
+              kind==="RECON_MINI"?`🎖️💛 RICONOSCENZA MINI! +${formatNumber(recognitionHit.amount)} monete`:
+              (prize>0 ? `🎁 Premio ${formatNumber(prize)} monete` : "❌ Nessun premio")
+            ),
+           amount: prizeTotal },
+    prizeCost: prizeTotal,
+    segmentIndex: pickSegmentIndexForAmount(prize, kind),
+    recognitionTier: (kind==="RECON_MAJOR"?"MAJOR":kind==="RECON_MEDIUM"?"MEDIUM":kind==="RECON_MINI"?"MINI":null),
+    recognitionAmount: (kind && String(kind).indexOf("RECON_")===0 && recognitionHit ? recognitionHit.amount : 0),
+    isJackpot: false,
+    bet
+  };
+}
+
+/* Un lancio = 1 SPIN (puntata selezionata) */
+function runAggregatedSpin() {
+  const info = pickPrizeByRandom();
+
+  let labelDef;
+  if (info.def.name === "JACKPOT") {
+    labelDef = prizeDefs.JACKPOT;
+  } else if (info.prizeCost === 0) {
+    labelDef = prizeDefs.NO_WIN;
+  } else {
+    labelDef = {
+      name: info.def.name,
+      label: info.def.label,
+      amount: info.prizeCost
+    };
+  }
+
+  return {
+    labelDef,
+    aggregatedPrize: info.prizeCost,
+    spinsBase: 1,
+    bet: info.bet,
+    lastRnd: info.rnd,
+    isJackpot: info.def.name === "JACKPOT",
+    segmentIndex: info.segmentIndex,
+    recognitionTier: info.recognitionTier || null,
+    recognitionAmount: info.recognitionAmount || 0,
+    isSpecialJackpot: !!(info.recognitionTier && (info.recognitionAmount||0) > 0),
+    isAnyJackpot: (info.def && info.def.name==="JACKPOT") || !!(info.recognitionTier && (info.recognitionAmount||0) > 0)
+  };
+}
+
+function showPrizeBanner(def, prizeAmount) {
+  const isJackpot = def.name === "JACKPOT";
+  const amountText = prizeAmount > 0
+    ? `${formatNumber(prizeAmount)} MONETE`
+    : "NESSUN PREMIO";
+
+  const title = isJackpot
+    ? "JACKPOT!"
+    : (prizeAmount > 0 ? "HAI VINTO!" : "RITENTA");
+
+  const sub = isJackpot
+    ? "SUPER JACKPOT! GIOCO BLOCCATO. Premi \"Azzera sessione\" per ripartire. 🎉"
+    : (prizeAmount > 0 ? "Premio complessivo assegnato alla ruota di SmartphoneMania." : "Nessun premio in questo giro.");
+
+  const fixedClass = isJackpot ? "prize-overlay-fixed" : "";
+  prizeOverlay.classList.remove("hidden");
+  prizeOverlay.innerHTML = `
+    <div class="prize-overlay ${fixedClass}">
+      <div class="prize-banner ${isJackpot ? "jackpot" : ""}">
+        <div class="prize-title ${isJackpot ? "jackpot" : ""}">${title}</div>
+        <div class="prize-amount ${isJackpot ? "jackpot" : ""}">${amountText}</div>
+        <div class="prize-sub">${sub}</div>
+      </div>
+    </div>
+  `;
+
+  if (!isJackpot) {
+    setTimeout(() => {
+      prizeOverlay.classList.add("hidden");
+      prizeOverlay.innerHTML = "";
+    }, 2200);
+  }
+
+}
+
+// ===== BANNER SPECIALE (stile Universe) =====
+function showSpecialBanner(tier, amount){
+  const titleMap = { MINI: "PREMIO MINI", MEDIUM: "PREMIO MEDIUM", MAJOR: "PREMIO MAJOR" };
+  const title = titleMap[tier] || "PREMIO SPECIALE";
+  // banner stile jackpot/universe
+  const amountText = `${formatNumber(amount)} MONETE`;
+  const sub = "PREMIO SPECIALE ASSEGNATO! Si riavvia la corsa al JACKPOT UNIVERSE. 🚀";
+
+  const fixedClass = "prize-overlay-fixed";
+  prizeOverlay.classList.remove("hidden");
+  prizeOverlay.innerHTML = `
+    <div class="prize-overlay ${fixedClass}">
+      <div class="prize-banner jackpot">
+        <div class="prize-title jackpot">${title}</div>
+        <div class="prize-amount jackpot">${amountText}</div>
+        <div class="prize-sub">${sub}</div>
+      </div>
+    </div>
+  `;
+  // auto-hide dopo un po'
+  setTimeout(() => {
+    prizeOverlay.classList.add("hidden");
+    prizeOverlay.innerHTML = "";
+  }, 2600);
+}
+
+
+/* ===== TICKER: entra -> stop centro 5s lampeggia -> esce ===== */
+const jackpotTicker = document.getElementById("jackpotTicker");
+let tickerTimers = [];
+function clearTickerTimers(){
+  tickerTimers.forEach(t=>{ try{ clearTimeout(t);}catch(e){} });
+  tickerTimers = [];
+}
+function positionTickerAboveUniverse(){
+  if(!jackpotTicker) return;
+  const uni = document.getElementById("jackpotUniverse");
+  if(!uni) return;
+  const r = uni.getBoundingClientRect();
+  // 8px sopra al video/container
+  const bottomFromViewport = window.innerHeight - r.top + 8;
+  jackpotTicker.style.bottom = `${bottomFromViewport}px`;
+}
+window.addEventListener("resize", ()=>{ try{ positionTickerAboveUniverse(); }catch(e){} });
+
+function showJackpotTickerOneLine(text){
+  if(!jackpotTicker) return;
+  clearTickerTimers();
+  positionTickerAboveUniverse();
+
+  jackpotTicker.textContent = text;
+  jackpotTicker.classList.remove("hidden");
+  jackpotTicker.classList.remove("blink");
+  jackpotTicker.classList.add("show");
+
+  // start fuori schermo a sinistra
+  jackpotTicker.style.transition = "none";
+  jackpotTicker.style.transform = "translateX(-160%)";
+  // Force reflow
+  void jackpotTicker.offsetWidth;
+
+  // entra al centro
+  jackpotTicker.style.transition = "transform 520ms cubic-bezier(.2,.9,.2,1)";
+  jackpotTicker.style.transform = "translateX(-50%)";
+
+  // quando arriva al centro, lampeggia 5s poi esce
+  const t1 = setTimeout(()=>{
+    jackpotTicker.classList.add("blink");
+
+    const t2 = setTimeout(()=>{
+      jackpotTicker.classList.remove("blink");
+      jackpotTicker.style.transition = "transform 520ms cubic-bezier(.2,.9,.2,1)";
+      jackpotTicker.style.transform = "translateX(160%)";
+
+      const t3 = setTimeout(()=>{
+        jackpotTicker.classList.add("hidden");
+        jackpotTicker.classList.remove("show");
+      }, 560);
+      tickerTimers.push(t3);
+    }, 5000);
+    tickerTimers.push(t2);
+  }, 560);
+  tickerTimers.push(t1);
+}
+
+/* ===== LOCK TEMPORANEO PER PREMI SPECIALI (Minor/Medium/Major) ===== */
+let specialLock = false;
+let specialLockLabel = "";
+function lockForSpecialPrize(tier, amount){
+  specialLock = true;
+  specialLockLabel = tier;
+
+  // blocca eventuale auto-spin subito
+  try{
+    multiSpinsRemaining = 0;
+    updateMultiStatusDisplay(0);
+  }catch(e){}
+
+  // overlay stile jackpot (fisso) ma sbloccabile con "Gira la ruota"
+  const titleMap = { MINI: "JACKPOT MINOR", MEDIUM: "JACKPOT MEDIUM", MAJOR: "JACKPOT MAJOR" };
+  const title = titleMap[tier] || "JACKPOT SPECIALE";
+  const amountText = `${formatNumber(amount)} MONETE`;
+
+  prizeOverlay.classList.remove("hidden");
+  prizeOverlay.innerHTML = `
+    <div class="prize-overlay prize-overlay-fixed">
+      <div class="prize-banner jackpot">
+        <div class="prize-title jackpot">${title}</div>
+        <div class="prize-amount jackpot">${amountText}</div>
+        <div class="prize-sub">Premio speciale assegnato. Premi "Gira la ruota" per continuare.</div>
+      </div>
+    </div>
+  `;
+
+  // ticker 1 riga sopra al video universe (senza video)
+  const nick = (typeof currentNick !== "undefined" && currentNick) ? currentNick : "GIOCATORE";
+  // ticker + animazione leone (premio speciale)
+  try{ showLionTicker(`🎉 ${nick} — ${title} · ${formatNumber(amount)} monete`, 5000); }catch(e){}
+  try{ playLionJackpot(5000); }catch(e){}
+}
+
+function clearSpecialLockIfAny(){
+  if(!specialLock) return;
+  specialLock = false;
+  specialLockLabel = "";
+  // chiudi overlay + leone
+  try{ hideLionTickerInstant(); }catch(e){}
+  try{ hideLionInstant(); }catch(e){}
+  try{ if(jackpotTicker){ jackpotTicker.classList.add('hidden'); jackpotTicker.classList.remove('show','blink'); } }catch(e){}
+  // chiudi overlay
+  try{
+    prizeOverlay.classList.add("hidden");
+    prizeOverlay.innerHTML = "";
+  }catch(e){}
+}
+
+// ===== JACKPOT UNIVERSE: ciclo controllato =====
+function startNewUniverseCycle(startGross){
+  universeCycleActive = true;
+  universeCycleStartGross = startGross;
+
+  
+  // reset riserva jackpot per nuovo ciclo
+  universeJackpotReserve = 0;
+  try{ localStorage.setItem(UNIVERSE_RESERVE_KEY, "0"); }catch(e){}
+localStorage.setItem(UNIVERSE_CYCLE_ACTIVE_KEY, "1");
+  localStorage.setItem(UNIVERSE_CYCLE_START_KEY, String(universeCycleStartGross));
+
+  // Nuovo target relativo allo start (600k-1M)
+  const range = JACKPOT_MAX_RECEIVED - JACKPOT_MIN_RECEIVED;
+  const target = universeCycleStartGross + JACKPOT_MIN_RECEIVED + Math.floor(Math.random() * (range + 1));
+  jackpotTargetSpin = target;
+  localStorage.setItem(JACKPOT_TARGET_KEY, String(jackpotTargetSpin));
+
+  // appena riparte il ciclo, il jackpot NON è armato subito => stop suspense
+  if (typeof disableArmedAudioMode === "function") disableArmedAudioMode();
+}
+
+function endUniverseCycle(){
+  universeCycleActive = false;
+  localStorage.setItem(UNIVERSE_CYCLE_ACTIVE_KEY, "0");
+
+  // manteniamo start per debug ma non serve
+  // target verrà rigenerato al prossimo start ciclo
+  localStorage.removeItem(JACKPOT_TARGET_KEY);
+  jackpotTargetSpin = null;
+
+  if (typeof disableArmedAudioMode === "function") disableArmedAudioMode();
+}
+
+function universeMinGross(){
+  return universeCycleStartGross + JACKPOT_MIN_RECEIVED;
+}
+function universeHardcapGross(){
+  return universeCycleStartGross + JACKPOT_HARDCAP_RECEIVED;
+}
+function isUniverseArmed(nextGross){
+  return universeCycleActive && !gameLocked && !universePausedBySpecial && (nextGross >= universeMinGross());
+}
+
+/* UI per risultato aggregato */
+function updateResultUI(aggInfo) {
+  const { labelDef, aggregatedPrize, spinsBase, lastRnd, isJackpot } = aggInfo;
+// === PREMIO SPECIALE (RICONOSCENZA) ===
+if (aggInfo && aggInfo.isSpecialJackpot) {
+  const tier = aggInfo.recognitionTier || "MINI";
+  // blocca e mostra SOLO animazione LEONE (video + frame finale lampeggiante) + ticker
+  try { lockForSpecialPrize(tier, aggInfo.aggregatedPrize); } catch(e) {}
+  // aggiorna box risultato senza sovrapporre banner standard
+  const clsS = "jackpot";
+  resultBox.innerHTML = `
+    <div class="result-title"><span>🦁</span>Premio speciale</div>
+    <p class="result-main ${clsS}">${labelDef.label}</p>
+    <p class="result-sub">Puntata per questo spin: <span>${formatNumber(aggInfo.bet)}</span> monete</p>
+    <p class="result-sub">Premio complessivo: <span>${formatNumber(aggregatedPrize)}</span> monete</p>
+    <p class="result-sub">Spin totali finora: <span>${totalSpins}</span></p>
+  `;
+  hideArmPopup();
+  disableArmedAudioMode();
+  return;
+}
+
+
+  const cls =
+    labelDef.name === "JACKPOT" ? "jackpot" :
+    aggregatedPrize === 0 ? "lose" : "win";
+
+  const numeroEstratto = isJackpot ? "★ JACKPOT ★" : lastRnd;
+
+  resultBox.innerHTML = `
+    <div class="result-title"><span>${labelDef.name==="JACKPOT"?"🌟":"🎁"}</span>Ultimo risultato</div>
+    <p class="result-main ${cls}">${labelDef.label}</p>
+    <p class="result-sub">Puntata per questo spin: <span>${formatNumber(aggInfo.bet)}</span> monete</p>
+    <p class="result-sub">Numero estratto (ultimo): <span>${numeroEstratto}</span></p>
+    <p class="result-sub">Premio complessivo: <span>${formatNumber(aggregatedPrize)}</span> monete</p>
+    <p class="result-sub">Spin totali finora: <span>${totalSpins}</span></p>
+    <p class="result-sub">Premi totali erogati: <span>${formatNumber(totalPrizeCost)}</span> monete</p>
+  `;
+
+  if (labelDef.name === "JACKPOT") {
+    // PRO MODE FX + suono jackpot
+    triggerProJackpotEffects();
+    try{
+      const nick = (typeof currentNick !== 'undefined' && currentNick && currentNick.trim()) ? currentNick.trim() : 'Giocatore';
+      showUniverseTicker(`🎉 Complimenti ${nick} — ha appena vinto il JACKPOT TIKTOK UNIVERSE · ${formatNumber(UNIVERSE_JACKPOT_VALUE)} monete`);
+    }catch(e){}
+    playUniverseJackpot(6500);
+  } else if (aggregatedPrize > 0) {
+    if (aggregatedPrize <= 250) {
+      playEffectWithDuck(winSmallSound);
+    } else {
+      playEffectWithDuck(winMediumSound);
+    }
+  } else {
+    playEffectWithDuck(loseSound);
+  }
+
+  hideArmPopup();
+  disableArmedAudioMode();
+  showPrizeBanner(labelDef, aggregatedPrize);
+}
+
+function normalizeAngle(a){ a = a%360; if(a<0)a+=360; return a; }
+
+function spinAnimation(segmentIndex, cb, opts){
+  if(isSpinning) return;
+  isSpinning = true;
+  spinBtn.disabled = true;
+
+  opts = opts || {};
+  const isJackpotSpin = !!opts.isJackpotSpin;
+  const preJackpotMs = (typeof opts.preJackpotMs==="number" ? opts.preJackpotMs : 5000);
+  const baseDuration = (typeof opts.baseDuration==="number" ? opts.baseDuration : 4800);
+  const totalDuration = isJackpotSpin ? (baseDuration + preJackpotMs) : baseDuration;
+  const wheelEl = wheel;
+  const textEl = textRing;
+  const sirenAudio = document.getElementById("sirenAudio");
+
+  try{
+    const segmentAngle = 45;
+    const targetCenterAngle = normalizeAngle(-90 + segmentIndex*segmentAngle + segmentAngle/2);
+    const current = normalizeAngle(currentRotation);
+    let delta = targetCenterAngle - current;
+    delta = normalizeAngle(delta);
+
+    const baseSpins = 6;
+    const extra = baseSpins*360 + delta;
+    const targetRotation = currentRotation + extra;
+
+    try{ wheelEl.style.transition = `transform ${totalDuration}ms cubic-bezier(0.16, 0.9, 0.24, 1)`; }catch(e){}
+    if(textEl){ try{ textEl.style.transition = `transform ${totalDuration}ms cubic-bezier(0.16, 0.9, 0.24, 1)`; }catch(e){} }
+
+    wheel.style.transform = `rotate(${targetRotation}deg)`;
+    if (textRing) {
+      textRing.style.transform = `rotate(${targetRotation}deg)`;
+    }
+    currentRotation = targetRotation;
+
+    // SFX spin (se non siamo in armedAudioMode)
+    if (spinSound){
+      spinSound.loop = true;
+      spinSound.currentTime = 0;
+      playSfx(spinSound);
+    }
+    if (!musicOn) setMusic(true);
+
+// PRE-JACKPOT: ultimi 5s in rallenty + vibrazione + sirena
+let sirenTimer = null;
+let shakeTimer = null;
+if(isJackpotSpin){
+  const startAt = Math.max(0, totalDuration - preJackpotMs);
+  try{
+    sirenTimer = setTimeout(()=>{
+      try{
+        if(sirenAudio){
+          sirenAudio.pause();
+          sirenAudio.currentTime = 0;
+          playSfx(sirenAudio);
+        }
+      }catch(e){}
+      try{ wheelEl.classList.add("prejackpot-shake"); }catch(e){}
+      // stop dopo preJackpotMs
+      shakeTimer = setTimeout(()=>{
+        try{ wheelEl.classList.remove("prejackpot-shake"); }catch(e){}
+        try{ if(sirenAudio){ sirenAudio.pause(); sirenAudio.currentTime = 0; } }catch(e){}
+      }, preJackpotMs);
+    }, startAt);
+  }catch(e){}
+}
+
+    setTimeout(() => {
+      try{
+        if (spinSound){
+          spinSound.pause();
+          spinSound.currentTime = 0;
+          spinSound.loop = false;
+        }
+      }catch(e){}
+
+      isSpinning = false;
+      if (!gameLocked) spinBtn.disabled = false;
+
+      // callback protetta: se va in errore non blocchiamo la ruota
+      try{ cb(); }catch(err){
+        console.error("[SPIN] Errore callback:", err);
+        // fallback: sblocca sempre
+        isSpinning = false;
+        if (!gameLocked) spinBtn.disabled = false;
+        try{ disableArmedAudioMode(); }catch(e){}
+      }
+    }, totalDuration);
+
+  }catch(err){
+    console.error("[SPIN] Errore spinAnimation:", err);
+    isSpinning = false;
+    if (!gameLocked) spinBtn.disabled = false;
+    try{
+      if (spinSound){
+        spinSound.pause();
+        spinSound.currentTime = 0;
+        spinSound.loop = false;
+      }
+    }catch(e){}
+    try{ disableArmedAudioMode(); }catch(e){}
+  }
+}
+
+
+/* CLICK GIRA LA RUOTA */
+spinBtn.addEventListener("click", () => {
+  armUniverseMedia();
+  if (gameLocked) {
+    alert('È uscito il JACKPOT! Il gioco è bloccato.\nPremi "Azzera sessione" per ripartire.');
+    return;
+  }
+  // Safety: prima di qualsiasi giro, pulisci eventuali residui animazioni speciali
+  try{ hideLionTickerInstant(); }catch(e){}
+  try{ hideLionInstant(); }catch(e){}
+
+
+  // Se siamo bloccati da un premio speciale, sblocca e continua con lo stesso click
+  if (specialLock) {
+    clearSpecialLockIfAny();
+  }
+
+  if (multiSpinsRemaining > 0 || isSpinning) {
+    return;
+  }
+
+  // Nick: se non salvato, prendilo dal campo e salvalo automaticamente
+  if (!currentNick || !currentNick.trim()) {
+    const v = (nickInput ? nickInput.value : "").trim();
+    if (!v) {
+      alert('Inserisci il tuo Nick prima di girare la ruota.');
+      return;
+    }
+    currentNick = v;
+    localStorage.setItem("sm_wheel_nick", currentNick);
+    refreshNickLabel();
+  }
+
+  
+  // ===== MODALITÀ SUSPENSE: quando il Jackpot Universe entra nel range armato (>= start+600k) =====
+  const nextGrossForArm = (typeof totalNet !== "undefined") ? (totalNet + getBetPerSpin()) : 0;
+  if (typeof isUniverseArmed === "function" && isUniverseArmed(nextGrossForArm)) {
+    // popup una tantum quando entra armato
+    showArmPopup("JACKPOT UNIVERSE");
+    enableArmedAudioMode();
+  } else {
+    // se non è armato, stop suspense
+    if (typeof disableArmedAudioMode === "function") disableArmedAudioMode();
+  }
+
+let spinsToDo = 1;
+  if (multiSpinsInput) {
+    const v = parseInt(multiSpinsInput.value, 10);
+    if (!isNaN(v) && v > 0) {
+      spinsToDo = Math.min(v, 100);
+    }
+  }
+
+  multiSpinsTotal = spinsToDo;
+  multiSpinsRemaining = spinsToDo;
+
+  function doSpin() {
+    if (specialLock) {
+      // Sblocco premio speciale: alla pressione di GIRA sparisce tutto e riparte
+      clearSpecialLockIfAny();
+    }
+    if (multiSpinsRemaining <= 0 || gameLocked || specialLock) {
+      multiSpinsRemaining = 0;
+      updateMultiStatusDisplay(0);
+      return;
+    }
+
+    const currentSpinNumber = multiSpinsTotal - multiSpinsRemaining + 1;
+    updateMultiStatusDisplay(currentSpinNumber);
+
+    const aggInfo = runAggregatedSpin();
+
+    spinAnimation(aggInfo.segmentIndex, () => {
+      updateResultUI(aggInfo);
+      updateLeaderboard(currentNick, aggInfo.aggregatedPrize, aggInfo.labelDef.name === "JACKPOT");
+
+      if (aggInfo.labelDef.name === "JACKPOT") {
+        // Jackpot Universe: il blocco viene gestito in runAggregatedSpin() (gameLocked + UI lock)
+        // Qui non facciamo nulla: si resta bloccati finché non premi AZZERA.
+      }
+
+      multiSpinsRemaining--;
+
+      if (multiSpinsRemaining > 0) {
+        doSpin();
+      } else {
+        updateMultiStatusDisplay(0);
+      }
+    }, { isJackpotSpin: !!aggInfo.isAnyJackpot });  }
+
+  doSpin();
+});
+
+/* RESET TOTALE */
+resetBtn.addEventListener("click", () => {
+  // Se il gioco è BLOCCATO per JACKPOT UNIVERSE: questo tasto serve SOLO a sbloccare e far ripartire il ciclo
+  if (gameLocked){
+    const ok = confirm("Sei sicuro di voler azzerare tutte le statistiche?");
+    if(!ok) return;
+
+    // 1) sblocca UI (ma non tocca i premi speciali)
+    gameLocked = false;
+    try{ localStorage.setItem(UNIVERSE_LOCK_KEY, "0"); }catch(e){}
+    if (appRoot) {
+      appRoot.classList.remove("jackpot-locked");
+      appRoot.classList.remove("lock-all");
+    }
+    if (spinBtn) { spinBtn.disabled = false; spinBtn.classList.remove('locked'); }
+
+    // 2) chiudi overlay jackpot persistente + ticker
+    if (prizeOverlay){
+      prizeOverlay.classList.add("hidden");
+      prizeOverlay.innerHTML = "";
+    }
+    try{ hideUniverseTickerInstant(); }catch(e){}
+    // chiudi eventuali video/hold frame
+    try{
+      const ubox=document.getElementById("jackpotUniverse");
+      const uvid=document.getElementById("universeVideo");
+      if(uvid){ try{ uvid.pause(); }catch(e){} }
+      if(ubox){ ubox.classList.add("hidden"); ubox.classList.remove("show","hold"); }
+    }catch(e){}
+    try{ hideLionTickerInstant(); }catch(e){}
+    try{ hideLionInstant(); }catch(e){}
+
+    // 3) stop eventuali auto-spin rimasti
+    try{
+      multiSpinsRemaining = 0;
+      multiSpinsTotal = 0;
+      updateMultiStatusDisplay(0);
+    }catch(e){}
+
+    // 4) AZZERA SOLO STATISTICHE (non pool premi speciali)
+    totalSpins = 0;
+    totalNet = 0;              // monete spese totali (stat)
+    totalReceivedNet = 0;      // calcolo margine/profit
+    totalPrizeCost = 0;        // premi totali erogati (stat)
+    jackpotCount = 0;
+    totalSmallPaid = 0;
+    totalBigPaid = 0;
+
+    // azzera anche il pot "premi normali" (statistica/accumulo), NON le pool speciali
+    accumPot = 0;
+    try{ localStorage.setItem(POT_KEY, String(accumPot)); }catch(e){}
+
+    // 5) riparte SEMPRE un nuovo ciclo Universe da 0 con stesse regole (600k-1M)
+    try{ startNewUniverseCycle(0); }catch(e){}
+
+    updateStatsBox();
+    return;
+  }
+
+
+
+  const sure = confirm(`Vuoi davvero azzerare TUTTI i dati?
+
+Verranno cancellati:
+- Statistiche sessione
+- Classifica generale vincitori
+- Montepremi accumulato
+- Obiettivo JACKPOT
+- Sblocco dopo Jackpot
+- Nick salvato`);
+if (!sure) return;
+
+  // reset variabili runtime
+  totalSpins = 0;
+  totalNet = 0;
+  totalPrizeCost = 0;
+  jackpotCount = 0;
+  multiSpinsRemaining = 0;
+  multiSpinsTotal = 0;
+  gameLocked = false;
+  mainJackpotHit = false;
+  // reset accumulo principale (premi normali). Le RICONOSCENZE (premi speciali) NON vengono azzerate qui.
+  accumPot = 0;
+  // UI/lock
+  if (appRoot) appRoot.classList.remove("jackpot-locked");
+  spinBtn.disabled = false;
+  updateMultiStatusDisplay(0);
+
+  // rimuovi tutte le chiavi della ruota (più sicuro di rimuoverle una ad una)
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (!k) continue;
+    if (k.startsWith("sm_wheel_")) {
+      // NON cancellare le pool delle riconoscenze: si azzerano solo quando escono
+      if (k === POOL_MINOR_KEY || k === POOL_MEDIUM_KEY || k === POOL_MAJOR_KEY) continue;
+      localStorage.removeItem(k);
+    }
+  }
+  // chiave nick (non usa prefix sm_wheel_ in alcune versioni)
+  localStorage.removeItem("sm_wheel_nick");
+
+  // chiudi overlay e pulisci FX
+  prizeOverlay.classList.add("hidden");
+  prizeOverlay.innerHTML = "";
+  if (fxLayer) fxLayer.innerHTML = "";
+
+  // ripristina ring no-gambling e box statistiche
+  setupNoGamblingRing();
+  updateStatsBox();
+
+  // reset classifica UI (dopo clear storage)
+  renderLeaderboard();
+
+  // reset nick UI
+  if (typeof currentNick !== "undefined") currentNick = "";
+  if (typeof nickInput !== "undefined" && nickInput) nickInput.value = "";
+  if (typeof refreshNickLabel === "function") refreshNickLabel();
+
+  resultBox.innerHTML = `
+    <div class="result-title"><span>🎁</span>Ultimo risultato</div>
+    <p>Nessun giro ancora effettuato. Premi "Gira la ruota" per iniziare.</p>`;
+});
+
+
+
+function checkUniverseAssets(){
+  const v = document.getElementById("universeVideo");
+  const a = document.getElementById("universeAudio");
+  try{
+    if(v){
+      v.addEventListener("error", ()=>{ console.warn("[UNIVERSE] Video non caricato:", v.currentSrc || v.src); });
+    }
+    if(a){
+      a.addEventListener("error", ()=>{ console.warn("[UNIVERSE] Audio non caricato:", a.currentSrc || a.src); });
+    }
+  }catch(e){}
+}
+
+
+/* INIT */
+checkUniverseAssets();
+loadStats();
+
+// ripristino lock dopo refresh pagina
+try{
+  if (localStorage.getItem(UNIVERSE_LOCK_KEY) === "1"){
+    gameLocked = true;
+    if (appRoot) { appRoot.classList.add("jackpot-locked"); appRoot.classList.add("lock-all"); }
+    if (spinBtn) spinBtn.disabled = true;
+    // mostra overlay persistente (info)
+    try{
+      if (prizeOverlay){
+        prizeOverlay.classList.remove("hidden");
+        prizeOverlay.innerHTML = `
+          <div class="prize-overlay prize-overlay-fixed">
+            <div class="prize-banner jackpot">
+              <div class="prize-title jackpot">JACKPOT!</div>
+              <div class="prize-amount jackpot">${formatNumber(UNIVERSE_JACKPOT_VALUE)} MONETE</div>
+              <div class="prize-sub">GIOCO BLOCCATO. Premi "Azzera sessione" per ripartire.</div>
+            </div>
+          </div>
+        `;
+      }
+    }catch(e){}
+  }
+}catch(e){}
+
+// riallinea e garantisce che il Jackpot Universe abbia sempre un ciclo attivo
+// (così è sempre forzato 600.000 → 1.000.000)
+try{
+  // ora totalNet è stato caricato
+  if (typeof totalNet === "number" && totalNet >= 0 && !universeCycleActive){
+    universeCycleStartGross = totalNet;
+    localStorage.setItem(UNIVERSE_CYCLE_START_KEY, String(universeCycleStartGross));
+  }
+  if (typeof ensureUniverseCycleBaseline === "function") ensureUniverseCycleBaseline();
+}catch(e){}
+updateStatsBox();
+if (totalSpins > 0) {
+  resultBox.innerHTML = `
+    <div class="result-title"><span>🎁</span>Ultimo risultato</div>
+    <p class="result-sub">Sessione ripresa.</p>
+    <p class="result-sub">Spin totali: <span>${totalSpins}</span>.</p>
+    <p class="result-sub">Premi totali erogati: <span>${formatNumber(totalPrizeCost)}</span> monete.</p>`;
+}
+
+loadNick();
+renderLeaderboard();
+setupNoGamblingRing();
+updateStatsBox();
+// login removed: no checkAlreadyLogged()
+</script>
+
+</body>
+</html>
